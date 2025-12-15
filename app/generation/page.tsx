@@ -33,7 +33,7 @@ export default function GenerationPage() {
                     return;
                 }
 
-                setProgress(30);
+                setProgress(20);
                 setStatus("記事を生成中...");
 
                 const response = await fetch("/api/article/generate", {
@@ -54,22 +54,58 @@ export default function GenerationPage() {
 
                 const data = await response.json();
                 
-                setProgress(100);
-                setStatus("完了！");
-
                 // 生成された記事を保存
                 localStorage.setItem("radio2note_article", data.article);
                 localStorage.setItem("radio2note_articleTheme", theme);
                 localStorage.setItem("radio2note_articleTone", tone);
                 localStorage.setItem("radio2note_articleWordCount", data.wordCount.toString());
 
+                setProgress(60);
+                setStatus("タイトル画像を生成中...");
+
+                // 記事の最初の段落をサマリーとして使用
+                const articleLines = data.article.split("\n").filter((line: string) => line.trim());
+                const articleSummary = articleLines.slice(0, 3).join(" ").substring(0, 200);
+
+                // タイトル画像を生成
+                try {
+                    const imageResponse = await fetch("/api/image/generate", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            title: theme,
+                            articleSummary,
+                        }),
+                    });
+
+                    if (imageResponse.ok) {
+                        const imageData = await imageResponse.json();
+                        if (imageData.success && imageData.imageBase64) {
+                            // Base64画像とmimeTypeをlocalStorageに保存
+                            localStorage.setItem("radio2note_articleImage", imageData.imageBase64);
+                            localStorage.setItem("radio2note_articleImageMimeType", imageData.mimeType || "image/png");
+                            console.log("🎨 タイトル画像を保存しました:", imageData.mimeType);
+                        }
+                    } else {
+                        console.warn("画像生成に失敗しましたが、記事は正常に生成されました");
+                    }
+                } catch (imageError) {
+                    console.warn("画像生成中にエラーが発生しましたが、記事は正常に生成されました:", imageError);
+                }
+
+                setProgress(100);
+                setStatus("完了！");
+
                 // 記事ページに遷移
                 setTimeout(() => {
                     router.push("/article");
                 }, 500);
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error("Article generation error:", error);
-                alert("記事生成中にエラーが発生しました: " + error.message);
+                const errorMessage = error instanceof Error ? error.message : "不明なエラー";
+                alert("記事生成中にエラーが発生しました: " + errorMessage);
                 router.push("/tone");
             }
         };

@@ -13,12 +13,15 @@ export default function ArticlePage() {
     const [elapsedTime, setElapsedTime] = useState("");
     const [wordCount, setWordCount] = useState(0);
     const [copied, setCopied] = useState(false);
+    const [titleImage, setTitleImage] = useState<string | null>(null);
+    const [titleImageMimeType, setTitleImageMimeType] = useState<string>("image/png");
 
     useEffect(() => {
         const savedArticle = localStorage.getItem("radio2note_article");
         const savedTheme = localStorage.getItem("radio2note_articleTheme");
         const savedElapsedTime = localStorage.getItem("radio2note_elapsedTime");
         const savedWordCount = localStorage.getItem("radio2note_articleWordCount");
+        const savedImage = localStorage.getItem("radio2note_articleImage");
 
         if (!savedArticle) {
             alert("記事が見つかりません。記事生成からやり直してください。");
@@ -31,9 +34,19 @@ export default function ArticlePage() {
         setElapsedTime(savedElapsedTime || "0");
         const wc = parseInt(savedWordCount || "0", 10);
         setWordCount(wc);
+        
+        // タイトル画像があれば設定
+        if (savedImage) {
+            setTitleImage(savedImage);
+            const savedMimeType = localStorage.getItem("radio2note_articleImageMimeType");
+            if (savedMimeType) {
+                setTitleImageMimeType(savedMimeType);
+            }
+        }
 
         // 記事一覧に保存（重複チェック）
         const articleId = `article_${Date.now()}`;
+        const savedMimeType = localStorage.getItem("radio2note_articleImageMimeType");
         const newArticle = {
             id: articleId,
             title: savedTheme || "無題の記事",
@@ -41,6 +54,8 @@ export default function ArticlePage() {
             content: savedArticle,
             createdAt: new Date().toISOString(),
             wordCount: wc,
+            image: savedImage || null,
+            imageMimeType: savedMimeType || "image/png",
         };
 
         const existingArticles = localStorage.getItem("radio2note_articles");
@@ -123,6 +138,17 @@ export default function ArticlePage() {
             </div>
 
             <div className="flex-1 overflow-y-auto pb-40 scrollbar-hide">
+                {/* タイトル画像 */}
+                {titleImage && (
+                    <div className="w-full aspect-video bg-muted overflow-hidden">
+                        <img 
+                            src={`data:${titleImageMimeType};base64,${titleImage}`}
+                            alt={theme || "記事のタイトル画像"}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                )}
+                
                 <div className="px-6 pt-6 pb-4">
                     <div className="flex items-center gap-2 mb-4">
                         <span className="text-xs font-bold bg-primary/20 text-primary px-3 py-1 rounded-full">
