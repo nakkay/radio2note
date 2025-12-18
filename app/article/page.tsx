@@ -17,68 +17,71 @@ export default function ArticlePage() {
     const [titleImageMimeType, setTitleImageMimeType] = useState<string>("image/png");
 
     useEffect(() => {
-        const savedArticle = localStorage.getItem("radio2note_article");
-        const savedTheme = localStorage.getItem("radio2note_articleTheme");
-        const savedElapsedTime = localStorage.getItem("radio2note_elapsedTime");
-        const savedWordCount = localStorage.getItem("radio2note_articleWordCount");
-        const savedImage = localStorage.getItem("radio2note_articleImage");
+        const loadArticle = async () => {
+            // URLパラメータからIDを取得
+            const searchParams = new URLSearchParams(window.location.search);
+            const articleId = searchParams.get("id");
 
-        if (!savedArticle) {
-            alert("記事が見つかりません。記事生成からやり直してください。");
-            router.push("/setup");
-            return;
-        }
-
-        setArticle(savedArticle);
-        setTheme(savedTheme || "");
-        setElapsedTime(savedElapsedTime || "0");
-        const wc = parseInt(savedWordCount || "0", 10);
-        setWordCount(wc);
-        
-        // タイトル画像があれば設定
-        if (savedImage) {
-            setTitleImage(savedImage);
-            const savedMimeType = localStorage.getItem("radio2note_articleImageMimeType");
-            if (savedMimeType) {
-                setTitleImageMimeType(savedMimeType);
+            // IDがある場合はSupabaseから取得を試みる
+            if (articleId) {
+                try {
+                    const response = await fetch(`/api/articles/${articleId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.article) {
+                            const articleData = data.article;
+                            setArticle(articleData.content);
+                            setTheme(articleData.theme || articleData.title || "");
+                            setElapsedTime((articleData.elapsed_time || 0).toString());
+                            setWordCount(articleData.word_count || 0);
+                            
+                            if (articleData.image) {
+                                setTitleImage(articleData.image);
+                                setTitleImageMimeType(articleData.image_mime_type || "image/png");
+                            }
+                            return; // Supabaseから取得できたので終了
+                        }
+                    } else {
+                        const errorData = await response.json();
+                        if (errorData.useLocalStorage) {
+                            console.warn("⚠️ Supabaseが利用できないため、localStorageから読み込みます");
+                        }
+                    }
+                } catch (error) {
+                    console.warn("⚠️ Supabaseからの取得に失敗しました。localStorageから読み込みます:", error);
+                }
             }
-        }
 
-        // 記事一覧に保存（重複チェック）
-        const articleId = `article_${Date.now()}`;
-        const savedMimeType = localStorage.getItem("radio2note_articleImageMimeType");
-        const newArticle = {
-            id: articleId,
-            title: savedTheme || "無題の記事",
-            theme: savedTheme || "",
-            content: savedArticle,
-            createdAt: new Date().toISOString(),
-            wordCount: wc,
-            image: savedImage || null,
-            imageMimeType: savedMimeType || "image/png",
+            // Supabaseから取得できなかった、またはIDがない場合はlocalStorageから読み込む
+            const savedArticle = localStorage.getItem("radio2note_article");
+            const savedTheme = localStorage.getItem("radio2note_articleTheme");
+            const savedElapsedTime = localStorage.getItem("radio2note_elapsedTime");
+            const savedWordCount = localStorage.getItem("radio2note_articleWordCount");
+            const savedImage = localStorage.getItem("radio2note_articleImage");
+
+            if (!savedArticle) {
+                alert("記事が見つかりません。記事生成からやり直してください。");
+                router.push("/setup");
+                return;
+            }
+
+            setArticle(savedArticle);
+            setTheme(savedTheme || "");
+            setElapsedTime(savedElapsedTime || "0");
+            const wc = parseInt(savedWordCount || "0", 10);
+            setWordCount(wc);
+            
+            // タイトル画像があれば設定
+            if (savedImage) {
+                setTitleImage(savedImage);
+                const savedMimeType = localStorage.getItem("radio2note_articleImageMimeType");
+                if (savedMimeType) {
+                    setTitleImageMimeType(savedMimeType);
+                }
+            }
         };
 
-        const existingArticles = localStorage.getItem("radio2note_articles");
-        let articles = [];
-        if (existingArticles) {
-            try {
-                articles = JSON.parse(existingArticles);
-            } catch {
-                articles = [];
-            }
-        }
-
-        // 同じ内容の記事が最近保存されていないかチェック（5分以内の同じテーマ）
-        const recentDuplicate = articles.find((a: { theme: string; createdAt: string }) => {
-            const timeDiff = Date.now() - new Date(a.createdAt).getTime();
-            return a.theme === savedTheme && timeDiff < 5 * 60 * 1000;
-        });
-
-        if (!recentDuplicate) {
-            articles.unshift(newArticle); // 先頭に追加
-            localStorage.setItem("radio2note_articles", JSON.stringify(articles));
-            console.log("📝 記事を保存しました:", newArticle.title);
-        }
+        loadArticle();
     }, [router]);
 
     const formatTime = (seconds: string) => {

@@ -54,7 +54,7 @@ export default function GenerationPage() {
 
                 const data = await response.json();
                 
-                // 生成された記事を保存
+                // 生成された記事を一時的にlocalStorageに保存（フォールバック用）
                 localStorage.setItem("radio2note_article", data.article);
                 localStorage.setItem("radio2note_articleTheme", theme);
                 localStorage.setItem("radio2note_articleTone", tone);
@@ -66,6 +66,9 @@ export default function GenerationPage() {
                 // 記事の最初の段落をサマリーとして使用
                 const articleLines = data.article.split("\n").filter((line: string) => line.trim());
                 const articleSummary = articleLines.slice(0, 3).join(" ").substring(0, 200);
+
+                let imageBase64 = null;
+                let imageMimeType = "image/png";
 
                 // タイトル画像を生成
                 try {
@@ -83,10 +86,12 @@ export default function GenerationPage() {
                     if (imageResponse.ok) {
                         const imageData = await imageResponse.json();
                         if (imageData.success && imageData.imageBase64) {
-                            // Base64画像とmimeTypeをlocalStorageに保存
-                            localStorage.setItem("radio2note_articleImage", imageData.imageBase64);
-                            localStorage.setItem("radio2note_articleImageMimeType", imageData.mimeType || "image/png");
-                            console.log("🎨 タイトル画像を保存しました:", imageData.mimeType);
+                            imageBase64 = imageData.imageBase64;
+                            imageMimeType = imageData.mimeType || "image/png";
+                            // 一時的にlocalStorageにも保存（フォールバック用）
+                            localStorage.setItem("radio2note_articleImage", imageBase64);
+                            localStorage.setItem("radio2note_articleImageMimeType", imageMimeType);
+                            console.log("🎨 タイトル画像を保存しました:", imageMimeType);
                         }
                     } else {
                         console.warn("画像生成に失敗しましたが、記事は正常に生成されました");
@@ -95,10 +100,58 @@ export default function GenerationPage() {
                     console.warn("画像生成中にエラーが発生しましたが、記事は正常に生成されました:", imageError);
                 }
 
+                setProgress(80);
+                setStatus("記事を保存中...");
+
+                // 会話履歴と収録時間を取得
+                const conversationStr = localStorage.getItem("radio2note_conversation");
+                const conversationHistory = conversationStr ? JSON.parse(conversationStr) : null;
+                const elapsedTime = parseInt(localStorage.getItem("radio2note_elapsedTime") || "0", 10);
+
+                // Supabaseに記事を保存（失敗した場合はlocalStorageにフォールバック）
+                try {
+                    const saveResponse = await fetch("/api/articles", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            title: theme,
+                            theme: theme,
+                            content: data.article,
+                            wordCount: data.wordCount,
+                            image: imageBase64,
+                            imageMimeType: imageMimeType,
+                            conversationHistory: conversationHistory,
+                            elapsedTime: elapsedTime,
+                            tone: tone,
+                        }),
+                    });
+
+                    if (saveResponse.ok) {
+                        const saveData = await saveResponse.json();
+                        if (saveData.article) {
+                            console.log("✅ Supabaseに記事を保存しました:", saveData.article.id);
+                            // 記事IDを保存して記事ページに遷移
+                            setTimeout(() => {
+                                router.push(`/article?id=${saveData.article.id}`);
+                            }, 500);
+                            return;
+                        }
+                    } else {
+                        const errorData = await saveResponse.json();
+                        if (errorData.useLocalStorage) {
+                            console.warn("⚠️ Supabaseが利用できないため、localStorageを使用します");
+                        }
+                    }
+                } catch (saveError) {
+                    console.warn("⚠️ 記事の保存に失敗しましたが、localStorageに保存済みです:", saveError);
+                }
+
                 setProgress(100);
                 setStatus("完了！");
 
-                // 記事ページに遷移
+                // Supabaseに保存できなかった場合はlocalStorageから読み込む
                 setTimeout(() => {
                     router.push("/article");
                 }, 500);

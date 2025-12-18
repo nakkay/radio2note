@@ -17,14 +17,47 @@ export default function ArticlesPage() {
     const [articles, setArticles] = useState<SavedArticle[]>([]);
 
     useEffect(() => {
-        const savedArticles = localStorage.getItem("radio2note_articles");
-        if (savedArticles) {
+        const loadArticles = async () => {
             try {
-                setArticles(JSON.parse(savedArticles));
-            } catch {
-                setArticles([]);
+                // Supabaseから記事一覧を取得
+                const response = await fetch("/api/articles");
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.articles) {
+                        // Supabaseのデータ形式をフロントエンドの形式に変換
+                        const formattedArticles = data.articles.map((a: any) => ({
+                            id: a.id,
+                            title: a.title,
+                            theme: a.theme || a.title,
+                            content: a.content,
+                            createdAt: a.created_at,
+                            wordCount: a.word_count || 0,
+                        }));
+                        setArticles(formattedArticles);
+                        return; // Supabaseから取得できたので終了
+                    }
+                } else {
+                    const errorData = await response.json();
+                    if (errorData.useLocalStorage) {
+                        console.warn("⚠️ Supabaseが利用できないため、localStorageから読み込みます");
+                    }
+                }
+            } catch (error) {
+                console.warn("⚠️ Supabaseからの取得に失敗しました。localStorageから読み込みます:", error);
             }
-        }
+
+            // Supabaseから取得できなかった場合はlocalStorageから読み込む
+            const savedArticles = localStorage.getItem("radio2note_articles");
+            if (savedArticles) {
+                try {
+                    setArticles(JSON.parse(savedArticles));
+                } catch {
+                    setArticles([]);
+                }
+            }
+        };
+
+        loadArticles();
     }, []);
 
     const formatDate = (dateString: string) => {
@@ -40,9 +73,32 @@ export default function ArticlesPage() {
         return date.toLocaleDateString("ja-JP", { month: "short", day: "numeric" });
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: string) => {
         if (!confirm("この記事を削除しますか？")) return;
         
+        try {
+            // Supabaseから削除を試みる
+            const response = await fetch(`/api/articles/${id}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                // Supabaseから削除できた場合は、ローカルの状態を更新
+                const updatedArticles = articles.filter(a => a.id !== id);
+                setArticles(updatedArticles);
+                console.log("✅ Supabaseから記事を削除しました");
+                return;
+            } else {
+                const errorData = await response.json();
+                if (errorData.useLocalStorage) {
+                    console.warn("⚠️ Supabaseが利用できないため、localStorageから削除します");
+                }
+            }
+        } catch (error) {
+            console.warn("⚠️ Supabaseからの削除に失敗しました。localStorageから削除します:", error);
+        }
+
+        // Supabaseから削除できなかった場合はlocalStorageから削除
         const updatedArticles = articles.filter(a => a.id !== id);
         setArticles(updatedArticles);
         localStorage.setItem("radio2note_articles", JSON.stringify(updatedArticles));

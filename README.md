@@ -18,8 +18,10 @@ Radio2Noteは、話すだけでnote記事が完成するWebアプリケーショ
 
 - **フロントエンド**: Next.js 16, React 19, Tailwind CSS
 - **バックエンド**: Next.js API Routes
+- **データベース**: Supabase (PostgreSQL)
 - **AI**: 
   - Claude API (Anthropic) - MC対話・記事生成
+  - Google Gemini API - 画像生成 (Nano Banana Pro)
   - OpenAI TTS - 音声合成（オプション）
 
 ## セットアップ
@@ -38,14 +40,31 @@ npm install
 # Anthropic Claude API
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
-# OpenAI API (for TTS)
+# Google Gemini API (画像生成用)
+GOOGLE_API_KEY=your_google_api_key_here
+
+# OpenAI API (for TTS - オプション)
 OPENAI_API_KEY=your_openai_api_key_here
+
+# Supabase (本番環境用)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Next.js
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-### 3. 開発サーバーの起動
+### 3. Supabaseのセットアップ（本番環境用）
+
+本番環境で記事データを保存する場合は、Supabaseのセットアップが必要です。
+
+1. [Supabase](https://supabase.com)でプロジェクトを作成
+2. SQL Editorで `supabase-schema.sql` の内容を実行してテーブルを作成
+3. 環境変数に `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` を設定
+
+**注意**: Supabaseが設定されていない場合、アプリは自動的にlocalStorageにフォールバックします（開発環境では問題ありません）。
+
+### 4. 開発サーバーの起動
 
 ```bash
 npm run dev
