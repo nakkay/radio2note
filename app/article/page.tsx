@@ -149,12 +149,28 @@ export default function ArticlePage() {
             if (line.match(/^#{1,3}\s/)) {
                 const level = line.match(/^#+/)?.[0].length || 1;
                 const content = line.replace(/^#+\s/, "");
-                const HeadingTag = `h${Math.min(level + 2, 4)}` as keyof JSX.IntrinsicElements;
-                return (
-                    <HeadingTag key={index} className="text-xl font-heading mt-8 mb-4">
-                        {content}
-                    </HeadingTag>
-                );
+                const headingLevel = Math.min(level + 2, 4);
+                
+                // 見出しレベルに応じて適切なタグを返す
+                if (headingLevel === 2) {
+                    return (
+                        <h2 key={index} className="text-xl font-heading mt-8 mb-4">
+                            {content}
+                        </h2>
+                    );
+                } else if (headingLevel === 3) {
+                    return (
+                        <h3 key={index} className="text-xl font-heading mt-8 mb-4">
+                            {content}
+                        </h3>
+                    );
+                } else {
+                    return (
+                        <h4 key={index} className="text-xl font-heading mt-8 mb-4">
+                            {content}
+                        </h4>
+                    );
+                }
             }
             return (
                 <p key={index} className="mb-4">
