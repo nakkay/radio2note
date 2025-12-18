@@ -116,12 +116,12 @@ export async function POST(request: NextRequest) {
       content: msg.content,
     }));
 
-    const systemPrompt = \`\${mcPrompt}
+    const systemPrompt = `${mcPrompt}
 
-\${stepGuidanceText}
+${stepGuidanceText}
 
-今日のトークテーマ: \${theme}
-\${memo ? \`MCに拾ってほしいポイント: \${memo}\` : ""}
+今日のトークテーマ: ${theme}
+${memo ? `MCに拾ってほしいポイント: ${memo}` : ""}
 
 【絶対に守るルール】
 - あなたはラジオ番組のMC。リスナーがいることを意識した話し方をする
@@ -131,10 +131,10 @@ export async function POST(request: NextRequest) {
 - 1回の応答は短く、1〜2文程度
 - 質問は1つずつ
 - 機械的な定型文（「それは素晴らしいですね」「興味深いですね」）は絶対禁止
-- テンポよく、早口気味でOK\`;
+- テンポよく、早口気味でOK`;
 
     // 会話開始時のラジオっぽい導入
-    const radioIntro = \`【番組開始】リスナーに向けて軽く挨拶してから、今日のゲスト（ユーザー）を紹介し、テーマ「\${theme}」について話を振ってください。ラジオ番組らしく「さあ、今日のゲストは〜」「今日のテーマは〜」のように自然に始めてください。\`;
+    const radioIntro = `【番組開始】リスナーに向けて軽く挨拶してから、今日のゲスト（ユーザー）を紹介し、テーマ「${theme}」について話を振ってください。ラジオ番組らしく「さあ、今日のゲストは〜」「今日のテーマは〜」のように自然に始めてください。`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
