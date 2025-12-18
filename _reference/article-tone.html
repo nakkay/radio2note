@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>ArticleTone</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link
+			href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:wght@400&display=swap"
+			rel="stylesheet"
+		>
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap"
+			rel="stylesheet"
+		>
+		<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+		<script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+		<style type="text/tailwindcss">
+		@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --font-font-sans: var(--font-sans);
+  --font-font-heading: var(--font-heading);
+  --font-font-serif: var(--font-serif);
+  --font-font-mono: var(--font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+  --tracking-normal: var(--tracking-normal);
+}
+
+		:root {
+			--background: #1c1917;
+			--foreground: #fafaf9;
+			--primary: #fbbf24;
+			--primary-foreground: #1c1917;
+			--secondary: #292524;
+			--secondary-foreground: #fafaf9;
+			--muted: #292524;
+			--muted-foreground: #a8a29e;
+			--accent: #292524;
+			--accent-foreground: #fafaf9;
+			--destructive: #ef4444;
+			--card: #292524;
+			--card-foreground: #fafaf9;
+			--popover: #1c1917;
+			--popover-foreground: #fafaf9;
+			--border: #44403c;
+			--input: #292524;
+			--ring: #fbbf24;
+			--sidebar: #0c0a09;
+			--sidebar-foreground: #a8a29e;
+			--sidebar-primary: #fbbf24;
+			--sidebar-primary-foreground: #1c1917;
+			--sidebar-accent: #292524;
+			--sidebar-accent-foreground: #fafaf9;
+			--sidebar-border: #292524;
+			--sidebar-ring: #fbbf24;
+			--chart-1: #fbbf24;
+			--chart-2: #f97316;
+			--chart-3: #ef4444;
+			--chart-4: #a8a29e;
+			--chart-5: #e7e5e4;
+
+			--font-sans: "Manrope";
+			--font-heading: "DM Serif Display";
+			--font-serif: "Playfair Display";
+			--font-mono: "JetBrains Mono";
+
+			--radius: 0.75rem;
+		}
+		</style>
+	</head>
+	<body>
+		<div
+			class="flex flex-col h-full bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground"
+		>
+			<div class="h-12 w-full flex items-center justify-between px-6 pt-2">
+				<div class="text-sm font-medium opacity-80">9:41</div>
+				<div class="flex items-center space-x-2">
+					<div class="h-4 w-4 rounded-full border border-current opacity-40"/>
+					<div class="h-4 w-4 rounded-full border border-current opacity-40"/>
+					<iconify-icon icon="solar:battery-charge-minimalistic-bold" class="size-5"></iconify-icon>
+				</div>
+			</div>
+			<div class="px-6 py-4 flex items-center justify-between">
+				<button
+					class="flex items-center justify-center size-11 rounded-full bg-card border border-border/50 transition-transform active:scale-95"
+				>
+					<iconify-icon icon="solar:arrow-left-linear" class="size-6"></iconify-icon>
+				</button>
+				<div class="flex items-center gap-2">
+					<div class="w-2 h-2 rounded-full bg-border"/>
+					<div class="w-2 h-2 rounded-full bg-primary"/>
+					<div class="w-2 h-2 rounded-full bg-border"/>
+				</div>
+				<div class="size-11"/>
+			</div>
+			<div class="flex-1 overflow-y-auto px-6 pb-24">
+				<div class="mb-8 text-center">
+					<div
+						class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-primary/20 border border-primary/40"
+					>
+						<iconify-icon
+							icon="solar:pen-new-round-bold"
+							class="size-4 text-primary mr-2"
+						></iconify-icon>
+						<span class="text-sm font-bold text-primary">STEP 2/3</span>
+					</div>
+				</div>
+				<div class="mb-8">
+					<h1 class="text-3xl font-heading tracking-tight text-center mb-3 text-foreground">
+						記事のトーンを
+						<br>
+						選択してください
+					</h1>
+					<p class="text-center text-sm text-muted-foreground">
+						読者に合わせた最適な文体を選びましょう
+					</p>
+				</div>
+				<div class="flex items-center justify-center mb-8">
+					<div
+						class="w-20 h-20 rounded-full bg-gradient-to-br from-primary/30 to-chart-2/30 border-2 border-primary/50 flex items-center justify-center"
+					>
+						<iconify-icon
+							icon="solar:document-text-bold"
+							class="size-10 text-primary"
+						></iconify-icon>
+					</div>
+				</div>
+				<div class="space-y-4 mb-8">
+					<button
+						class="w-full bg-card border-2 border-primary rounded-2xl p-6 transition-transform active:scale-95 shadow-sm"
+					>
+						<div class="flex items-start gap-4">
+							<div class="shrink-0">
+								<div
+									class="w-12 h-12 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center"
+								>
+									<iconify-icon
+										icon="solar:user-speak-bold"
+										class="size-6 text-primary"
+									></iconify-icon>
+								</div>
+							</div>
+							<div class="flex-1 text-left">
+								<h3 class="text-lg font-bold text-card-foreground mb-2">一人称（私）</h3>
+								<p class="text-sm text-muted-foreground leading-relaxed">
+									親しみやすく、個人的な体験を伝えるスタイル。読者との距離が近い印象を与えます。
+								</p>
+								<div
+									class="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/30"
+								>
+									<iconify-icon
+										icon="solar:check-circle-bold"
+										class="size-4 text-primary mr-1.5"
+									></iconify-icon>
+									<span class="text-xs font-bold text-primary">選択中</span>
+								</div>
+							</div>
+						</div>
+					</button>
+					<button
+						class="w-full bg-card border-2 border-border rounded-2xl p-6 transition-transform active:scale-95 shadow-sm"
+					>
+						<div class="flex items-start gap-4">
+							<div class="shrink-0">
+								<div
+									class="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center"
+								>
+									<iconify-icon
+										icon="solar:users-group-two-rounded-bold"
+										class="size-6 text-muted-foreground"
+									></iconify-icon>
+								</div>
+							</div>
+							<div class="flex-1 text-left">
+								<h3 class="text-lg font-bold text-card-foreground mb-2">三人称（彼・彼女）</h3>
+								<p class="text-sm text-muted-foreground leading-relaxed">
+									客観的で専門的な印象を与えるスタイル。ビジネスやフォーマルな記事に最適です。
+								</p>
+							</div>
+						</div>
+					</button>
+				</div>
+				<div class="bg-card rounded-2xl p-4 border border-border/50 flex gap-3 mb-6">
+					<div class="shrink-0 mt-0.5">
+						<iconify-icon
+							icon="solar:lightbulb-bolt-bold"
+							class="size-5 text-chart-1"
+						></iconify-icon>
+					</div>
+					<div>
+						<h4 class="text-sm font-bold mb-1 text-card-foreground">ヒント</h4>
+						<p class="text-xs text-muted-foreground leading-relaxed">
+							一人称は体験談やエッセイに、三人称はニュース記事やレポートに適しています。後から変更も可能です。
+						</p>
+					</div>
+				</div>
+				<div class="space-y-3">
+					<div class="bg-muted/30 rounded-xl p-4 border border-border/30">
+						<div class="flex items-start gap-3 mb-2">
+							<iconify-icon
+								icon="solar:document-bold"
+								class="size-5 text-primary shrink-0 mt-0.5"
+							></iconify-icon>
+							<div class="text-xs font-bold text-foreground">一人称の例</div>
+						</div>
+						<p class="text-xs text-muted-foreground leading-relaxed pl-8">
+							私は初めてのマラソンに挑戦しました。練習よりもメンタルが大事だと実感しました。
+						</p>
+					</div>
+					<div class="bg-muted/30 rounded-xl p-4 border border-border/30">
+						<div class="flex items-start gap-3 mb-2">
+							<iconify-icon
+								icon="solar:document-bold"
+								class="size-5 text-muted-foreground shrink-0 mt-0.5"
+							></iconify-icon>
+							<div class="text-xs font-bold text-foreground">三人称の例</div>
+						</div>
+						<p class="text-xs text-muted-foreground leading-relaxed pl-8">
+							彼女は初めてのマラソンに挑戦した。練習よりもメンタルが大事だと実感したという。
+						</p>
+					</div>
+				</div>
+			</div>
+			<div
+				class="fixed bottom-0 left-0 right-0 bg-background border-t border-border px-6 py-4 pb-8"
+			>
+				<button
+					class="w-full bg-primary text-primary-foreground h-14 rounded-2xl font-bold text-lg shadow-lg shadow-primary/25 flex items-center justify-center gap-3 transition-transform active:scale-95"
+				>
+					次へ<iconify-icon icon="solar:arrow-right-linear" class="size-6"></iconify-icon>
+				</button>
+			</div>
+		</div>
+	</body>
+</html>

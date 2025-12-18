@@ -302,6 +302,10 @@ export function useGeminiLive(options: UseGeminiLiveOptions) {
     setConnectionState("connecting");
 
     try {
+      // 現在の会話履歴を取得（再接続判定用）
+      const currentMessages = messagesRef.current;
+      const isReconnecting = currentMessages.length > 0;
+
       // サーバーから設定を取得
       const configResponse = await fetch("/api/gemini-live", {
         method: "POST",
@@ -384,24 +388,51 @@ export function useGeminiLive(options: UseGeminiLiveOptions) {
 
         // セットアップ完了
         if (data.setupComplete) {
-          console.log("✅ 接続完了 - 番組開始");
+          const currentMessages = messagesRef.current;
+          const isReconnecting = currentMessages.length > 0;
+
+          if (isReconnecting) {
+            console.log("✅ 再接続完了 - 会話を再開します（会話履歴:", currentMessages.length, "件）");
+          } else {
+            console.log("✅ 接続完了 - 番組開始");
+            startTimeRef.current = Date.now(); // 会話開始時刻を記録
+          }
+
           setConnectionState("connected");
           setConversationState("speaking");
-          startTimeRef.current = Date.now(); // 会話開始時刻を記録
 
-          // 初期メッセージを送信して会話を開始
-          const startMessage = {
-            clientContent: {
-              turns: [
-                {
-                  role: "user",
-                  parts: [{ text: "日本語で番組を開始してください。リスナーに挨拶して、ゲストを紹介してください。" }],
-                },
-              ],
-              turnComplete: true,
-            },
-          };
-          ws.send(JSON.stringify(startMessage));
+          // 再接続時は会話履歴を送信、初回接続時は初期メッセージを送信
+          if (isReconnecting) {
+            // 会話履歴をGemini Live APIの形式に変換
+            const historyTurns = currentMessages.map((msg) => ({
+              role: msg.role === "user" ? "user" : "model",
+              parts: [{ text: msg.content }],
+            }));
+
+            // 会話履歴を送信して会話を再開
+            const resumeMessage = {
+              clientContent: {
+                turns: historyTurns,
+                turnComplete: true,
+              },
+            };
+            ws.send(JSON.stringify(resumeMessage));
+            console.log("📝 会話履歴を送信しました（", historyTurns.length, "件）");
+          } else {
+            // 初期メッセージを送信して会話を開始
+            const startMessage = {
+              clientContent: {
+                turns: [
+                  {
+                    role: "user",
+                    parts: [{ text: "日本語で番組を開始してください。リスナーに挨拶して、ゲストを紹介してください。" }],
+                  },
+                ],
+                turnComplete: true,
+              },
+            };
+            ws.send(JSON.stringify(startMessage));
+          }
 
           // マイク入力の処理を開始
           startAudioCapture();
@@ -578,7 +609,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions) {
       setConnectionState("error");
       onError?.(error.message || "接続に失敗しました");
     }
-  }, [connectionState, mcId, theme, memo, isAudioEnabled, onMessage, onError, resetInactivityTimeout, decodeAudioData, playNextAudio]);
+  }, [connectionState, mcId, theme, memo, isAudioEnabled, onMessage, onError, resetInactivityTimeout, decodeAudioData, playNextAudio, messagesRef]);
 
   // マイク入力用のAudioContext（別インスタンス）
   const micContextRef = useRef<AudioContext | null>(null);

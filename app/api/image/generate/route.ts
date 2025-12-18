@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 記事のタイトルとサマリーを基に画像生成用のプロンプトを作成
-    // クリックしたくなる、テキスト入りのタイトル画像
-    const imagePrompt = `Create a stunning, click-worthy thumbnail image for a Japanese blog article on note.com.
+    // 視覚的要素を含めつつ、ミニマルで上質なタイトル画像（情報過多を避ける）
+    const imagePrompt = `Create a minimal, sophisticated, and high-quality thumbnail image for a Japanese blog article on note.com.
 
 【重要】画像内に以下の日本語タイトルを必ず含めてください：
 「${title}」
@@ -25,21 +25,44 @@ export async function POST(request: NextRequest) {
 ${articleSummary ? `記事の内容: ${articleSummary}` : ""}
 
 Design requirements:
-- Eye-catching, scroll-stopping visual that makes people want to click
+- The image MUST include visual elements that relate to the article topic (illustrations, icons, simple graphics, or conceptual imagery)
+- However, avoid information overload - keep it simple and elegant, not cluttered like typical YouTube thumbnails
+- Minimal and sophisticated design with limited color palette (2-3 colors maximum)
+- Elegant, refined aesthetic suitable for premium content
 - The Japanese title text "${title}" must be prominently displayed and highly readable
-- Bold, modern typography for the title (large, clear font)
-- Rich, vibrant color scheme that pops
+- Clean, modern typography for the title (large, clear font with generous spacing)
+- Subtle, muted color scheme - avoid vibrant or flashy colors
+- Use neutral tones, pastels, or monochrome with subtle accents
 - Professional quality suitable for note.com blog platform
 - Landscape orientation (16:9 aspect ratio)
-- Text should have good contrast against the background (use text shadows, overlays, or contrasting backgrounds)
-- Magazine-cover or YouTube-thumbnail quality composition
-- The image should tell a story related to the article topic
-- Make the viewer curious about the content
+- Text should have good contrast against the background (use subtle text shadows or overlays if needed)
+- Magazine-quality composition with plenty of white space
+- Visual elements should complement the title, not compete with it
+- Focus on elegance and readability over eye-catching effects
+
+Visual elements guidelines:
+- Include ONE main visual element that represents the article topic (illustration, icon, simple graphic, or conceptual image)
+- Visual should be simple, clean, and stylized - not photorealistic or complex
+- Place visual elements strategically to support the title, not overwhelm it
+- Use negative space effectively - don't fill every corner
+- Avoid multiple competing visual elements (no collage-style layouts)
 
 Typography style:
-- Use bold, impactful Japanese font styling
-- Title should be the focal point
-- Consider using subtle text effects (shadows, gradients, outlines) for readability
+- Use clean, modern Japanese font styling
+- Title should be the focal point with ample breathing room
+- Subtle text effects only if necessary for readability (avoid heavy shadows or gradients)
+
+Color guidelines:
+- Primary colors: Neutral tones (grays, beiges, soft whites)
+- Accent colors: One subtle accent color maximum (muted blues, soft greens, or warm grays)
+- Avoid: Bright reds, yellows, or highly saturated colors
+- Background: Clean, simple backgrounds with minimal visual noise
+
+What to avoid:
+- Cluttered layouts with multiple text boxes, arrows, or callouts
+- Overly complex illustrations or busy backgrounds
+- Too many visual elements competing for attention
+- YouTube-style thumbnails with excessive information density
 
 Generate only the image.`;
 

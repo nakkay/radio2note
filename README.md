@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Radio2Note
 
-## Getting Started
+ラジオ番組にゲスト出演するような対話体験を通じて、ユーザーの一次情報をnote記事として成型するサービス。
 
-First, run the development server:
+## 概要
+
+Radio2Noteは、話すだけでnote記事が完成するWebアプリケーションです。MC役のAIがユーザーとの対話を通じて、ユーザーの体験や発見を引き出し、それを読みやすい記事として自動生成します。
+
+## 機能
+
+- **トークテーマ設定**: 今日話したいテーマを入力
+- **MCキャラクター選択**: 4種類のMCキャラクターから選択可能
+- **リアルタイム対話**: MCとのテキストベースの対話
+- **記事生成**: 対話内容を基に、3,000〜5,000字の記事を自動生成
+- **トーン選択**: 一人称/三人称の文体を選択可能
+
+## 技術スタック
+
+- **フロントエンド**: Next.js 16, React 19, Tailwind CSS
+- **バックエンド**: Next.js API Routes
+- **AI**: 
+  - Claude API (Anthropic) - MC対話・記事生成
+  - OpenAI TTS - 音声合成（オプション）
+
+## セットアップ
+
+### 1. 依存関係のインストール
+
+```bash
+npm install
+```
+
+### 2. 環境変数の設定
+
+`.env.local`ファイルを作成し、以下の環境変数を設定してください：
+
+```env
+# Anthropic Claude API
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# OpenAI API (for TTS)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Next.js
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 3. 開発サーバーの起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 使い方
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **セットアップ**: トークテーマとMCに拾ってほしいポイントを入力
+2. **MC選択**: 4種類のMCキャラクターから選択
+3. **収録**: MCとの対話を開始（4ステップで進行）
+4. **トーン選択**: 記事の文体（一人称/三人称）を選択
+5. **記事生成**: AIが自動的に記事を生成
+6. **コピー**: 生成された記事をコピーして、noteなどに投稿
 
-## Learn More
+## プロジェクト構造
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/
+├── api/              # API Routes
+│   ├── conversation/ # MC対話API
+│   ├── tts/         # 音声合成API
+│   └── article/     # 記事生成API
+├── setup/           # セットアップページ
+├── mc/              # MC選択ページ
+├── recording/       # 収録ページ
+├── tone/            # トーン選択ページ
+├── generation/      # 記事生成ページ
+└── article/         # 記事表示ページ
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 仕様書
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+詳細な仕様は `_reference/spec.md` を参照してください。
 
-## Deploy on Vercel
+## ライセンス
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+このプロジェクトはプライベートプロジェクトです。

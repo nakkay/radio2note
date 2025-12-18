@@ -99,6 +99,46 @@ export default function ArticlePage() {
         }
     };
 
+    const handleDownloadImage = () => {
+        if (!titleImage) {
+            alert("画像がありません");
+            return;
+        }
+
+        try {
+            // Base64データをBlobに変換
+            const base64Data = titleImage;
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: titleImageMimeType });
+
+            // ファイル名を生成（テーマから）
+            const sanitizedTheme = (theme || "article-image")
+                .replace(/[^\w\s-]/g, "")
+                .replace(/\s+/g, "-")
+                .substring(0, 50);
+            const extension = titleImageMimeType === "image/jpeg" ? "jpg" : "png";
+            const filename = `${sanitizedTheme}.${extension}`;
+
+            // ダウンロードリンクを作成してクリック
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Failed to download image:", error);
+            alert("画像のダウンロードに失敗しました");
+        }
+    };
+
     // 記事をHTMLとして表示（改行を保持）
     const formatArticle = (text: string) => {
         return text.split("\n").map((line, index) => {
@@ -140,12 +180,19 @@ export default function ArticlePage() {
             <div className="flex-1 overflow-y-auto pb-40 scrollbar-hide">
                 {/* タイトル画像 */}
                 {titleImage && (
-                    <div className="w-full aspect-video bg-muted overflow-hidden">
+                    <div className="w-full aspect-video bg-muted overflow-hidden relative group">
                         <img 
                             src={`data:${titleImageMimeType};base64,${titleImage}`}
                             alt={theme || "記事のタイトル画像"}
                             className="w-full h-full object-cover"
                         />
+                        <button
+                            onClick={handleDownloadImage}
+                            className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background/90 backdrop-blur-sm rounded-full p-2 shadow-lg"
+                            title="画像をダウンロード"
+                        >
+                            <Icon icon="solar:download-bold" className="text-xl text-foreground" />
+                        </button>
                     </div>
                 )}
                 

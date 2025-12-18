@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>MCSelection</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link
+			href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:wght@400&display=swap"
+			rel="stylesheet"
+		>
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap"
+			rel="stylesheet"
+		>
+		<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+		<script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+		<style type="text/tailwindcss">
+		@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --font-font-sans: var(--font-sans);
+  --font-font-heading: var(--font-heading);
+  --font-font-serif: var(--font-serif);
+  --font-font-mono: var(--font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+  --tracking-normal: var(--tracking-normal);
+}
+
+		:root {
+			--background: #1c1917;
+			--foreground: #fafaf9;
+			--primary: #fbbf24;
+			--primary-foreground: #1c1917;
+			--secondary: #292524;
+			--secondary-foreground: #fafaf9;
+			--muted: #292524;
+			--muted-foreground: #a8a29e;
+			--accent: #292524;
+			--accent-foreground: #fafaf9;
+			--destructive: #ef4444;
+			--card: #292524;
+			--card-foreground: #fafaf9;
+			--popover: #1c1917;
+			--popover-foreground: #fafaf9;
+			--border: #44403c;
+			--input: #292524;
+			--ring: #fbbf24;
+			--sidebar: #0c0a09;
+			--sidebar-foreground: #a8a29e;
+			--sidebar-primary: #fbbf24;
+			--sidebar-primary-foreground: #1c1917;
+			--sidebar-accent: #292524;
+			--sidebar-accent-foreground: #fafaf9;
+			--sidebar-border: #292524;
+			--sidebar-ring: #fbbf24;
+			--chart-1: #fbbf24;
+			--chart-2: #f97316;
+			--chart-3: #ef4444;
+			--chart-4: #a8a29e;
+			--chart-5: #e7e5e4;
+
+			--font-sans: "Manrope";
+			--font-heading: "DM Serif Display";
+			--font-serif: "Playfair Display";
+			--font-mono: "JetBrains Mono";
+
+			--radius: 0.75rem;
+		}
+		</style>
+	</head>
+	<body>
+		<div
+			class="flex flex-col h-full bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground"
+		>
+			<div class="h-12 w-full flex items-center justify-between px-6 pt-2">
+				<div class="text-sm font-medium opacity-80">9:41</div>
+				<div class="flex items-center space-x-2">
+					<div class="h-4 w-4 rounded-full border border-current opacity-40"/>
+					<div class="h-4 w-4 rounded-full border border-current opacity-40"/>
+					<iconify-icon icon="solar:battery-charge-minimalistic-bold" class="size-5"></iconify-icon>
+				</div>
+			</div>
+			<div class="px-6 py-4 flex items-center justify-between">
+				<button
+					class="flex items-center justify-center size-11 rounded-full bg-card border border-border/50 transition-transform active:scale-95"
+				>
+					<iconify-icon icon="solar:arrow-left-linear" class="size-6"></iconify-icon>
+				</button>
+				<div class="flex items-center gap-2">
+					<div class="w-2 h-2 rounded-full bg-border"/>
+					<div class="w-2 h-2 rounded-full bg-primary"/>
+					<div class="w-2 h-2 rounded-full bg-border"/>
+				</div>
+				<div class="size-11"/>
+			</div>
+			<div class="flex-1 overflow-y-auto px-6 pb-24">
+				<div class="mb-8 text-center">
+					<div
+						class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-primary/20 border border-primary/40"
+					>
+						<iconify-icon
+							icon="solar:user-speak-bold"
+							class="size-4 text-primary mr-2"
+						></iconify-icon>
+						<span class="text-sm font-bold text-primary">STEP 2/3</span>
+					</div>
+				</div>
+				<div class="mb-8">
+					<h1 class="text-3xl font-heading tracking-tight text-center mb-3 text-foreground">
+						MCキャラクターを
+						<br>
+						選択してください
+					</h1>
+					<p class="text-center text-sm text-muted-foreground">
+						あなたの話を引き出すMCを選びましょう
+					</p>
+				</div>
+				<div class="space-y-4">
+					<button
+						class="w-full bg-card rounded-2xl p-5 border border-border transition-all active:scale-98 hover:border-primary/50"
+					>
+						<div class="flex items-start gap-4">
+							<div class="shrink-0">
+								<div
+									class="w-16 h-16 rounded-full bg-gradient-to-br from-chart-1/30 to-chart-2/30 border-2 border-chart-1/50 flex items-center justify-center"
+								>
+									<iconify-icon icon="solar:star-bold" class="size-8 text-chart-1"></iconify-icon>
+								</div>
+							</div>
+							<div class="flex-1 text-left">
+								<h3 class="text-lg font-bold mb-1 text-card-foreground">アキラ</h3>
+								<p class="text-sm text-muted-foreground mb-2">元気で前向きな応援型MC</p>
+								<div class="flex items-center gap-2 flex-wrap">
+									<span class="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full"
+										>明るい</span
+									><span class="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full"
+										>励まし上手</span
+									><span class="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full"
+										>初心者向け</span
+									>
+								</div>
+							</div>
+							<div class="shrink-0">
+								<iconify-icon
+									icon="solar:arrow-right-linear"
+									class="size-6 text-muted-foreground"
+								></iconify-icon>
+							</div>
+						</div>
+					</button>
+					<button
+						class="w-full bg-card rounded-2xl p-5 border border-border transition-all active:scale-98 hover:border-primary/50"
+					>
+						<div class="flex items-start gap-4">
+							<div class="shrink-0">
+								<div
+									class="w-16 h-16 rounded-full bg-gradient-to-br from-chart-2/30 to-chart-3/30 border-2 border-chart-2/50 flex items-center justify-center"
+								>
+									<iconify-icon icon="solar:sun-bold" class="size-8 text-chart-2"></iconify-icon>
+								</div>
+							</div>
+							<div class="flex-1 text-left">
+								<h3 class="text-lg font-bold mb-1 text-card-foreground">ユイ</h3>
+								<p class="text-sm text-muted-foreground mb-2">共感力高めの聞き上手MC</p>
+								<div class="flex items-center gap-2 flex-wrap">
+									<span class="text-xs bg-chart-2/20 text-chart-2 px-2 py-1 rounded-full"
+										>優しい</span
+									><span class="text-xs bg-chart-2/20 text-chart-2 px-2 py-1 rounded-full"
+										>深掘り上手</span
+									><span class="text-xs bg-chart-2/20 text-chart-2 px-2 py-1 rounded-full"
+										>感情表現豊か</span
+									>
+								</div>
+							</div>
+							<div class="shrink-0">
+								<iconify-icon
+									icon="solar:arrow-right-linear"
+									class="size-6 text-muted-foreground"
+								></iconify-icon>
+							</div>
+						</div>
+					</button>
+					<button
+						class="w-full bg-card rounded-2xl p-5 border border-border transition-all active:scale-98 hover:border-primary/50"
+					>
+						<div class="flex items-start gap-4">
+							<div class="shrink-0">
+								<div
+									class="w-16 h-16 rounded-full bg-gradient-to-br from-chart-4/30 to-chart-5/30 border-2 border-chart-4/50 flex items-center justify-center"
+								>
+									<iconify-icon icon="solar:book-bold" class="size-8 text-chart-4"></iconify-icon>
+								</div>
+							</div>
+							<div class="flex-1 text-left">
+								<h3 class="text-lg font-bold mb-1 text-card-foreground">ケンジ</h3>
+								<p class="text-sm text-muted-foreground mb-2">論理的で分析好きなプロMC</p>
+								<div class="flex items-center gap-2 flex-wrap">
+									<span class="text-xs bg-chart-4/20 text-chart-4 px-2 py-1 rounded-full"
+										>冷静</span
+									><span class="text-xs bg-chart-4/20 text-chart-4 px-2 py-1 rounded-full"
+										>質問上手</span
+									><span class="text-xs bg-chart-4/20 text-chart-4 px-2 py-1 rounded-full"
+										>経験者向け</span
+									>
+								</div>
+							</div>
+							<div class="shrink-0">
+								<iconify-icon
+									icon="solar:arrow-right-linear"
+									class="size-6 text-muted-foreground"
+								></iconify-icon>
+							</div>
+						</div>
+					</button>
+					<button
+						class="w-full bg-card rounded-2xl p-5 border border-border transition-all active:scale-98 hover:border-primary/50"
+					>
+						<div class="flex items-start gap-4">
+							<div class="shrink-0">
+								<div
+									class="w-16 h-16 rounded-full bg-gradient-to-br from-chart-3/30 to-primary/30 border-2 border-chart-3/50 flex items-center justify-center"
+								>
+									<iconify-icon icon="solar:fire-bold" class="size-8 text-chart-3"></iconify-icon>
+								</div>
+							</div>
+							<div class="flex-1 text-left">
+								<h3 class="text-lg font-bold mb-1 text-card-foreground">リナ</h3>
+								<p class="text-sm text-muted-foreground mb-2">情熱的で行動派のチャレンジャーMC</p>
+								<div class="flex items-center gap-2 flex-wrap">
+									<span class="text-xs bg-chart-3/20 text-chart-3 px-2 py-1 rounded-full"
+										>熱血</span
+									><span class="text-xs bg-chart-3/20 text-chart-3 px-2 py-1 rounded-full"
+										>前向き</span
+									><span class="text-xs bg-chart-3/20 text-chart-3 px-2 py-1 rounded-full"
+										>挑戦好き</span
+									>
+								</div>
+							</div>
+							<div class="shrink-0">
+								<iconify-icon
+									icon="solar:arrow-right-linear"
+									class="size-6 text-muted-foreground"
+								></iconify-icon>
+							</div>
+						</div>
+					</button>
+				</div>
+				<div class="bg-card rounded-2xl p-4 border border-border/50 flex gap-3 mt-6">
+					<div class="shrink-0 mt-0.5">
+						<iconify-icon
+							icon="solar:lightbulb-bolt-bold"
+							class="size-5 text-chart-1"
+						></iconify-icon>
+					</div>
+					<div>
+						<h4 class="text-sm font-bold mb-1 text-card-foreground">ヒント</h4>
+						<p class="text-xs text-muted-foreground leading-relaxed">
+							MCキャラクターは後から変更できます。まずは直感で選んでみてください。
+						</p>
+					</div>
+				</div>
+			</div>
+			<div
+				class="fixed bottom-0 left-0 right-0 bg-background border-t border-border px-6 py-4 pb-8"
+			>
+				<button
+					class="w-full bg-muted text-muted-foreground h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-transform active:scale-95"
+				>
+					MCを選択してください
+				</button>
+			</div>
+		</div>
+	</body>
+</html>
