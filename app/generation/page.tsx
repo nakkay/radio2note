@@ -3,9 +3,11 @@
 import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function GenerationPage() {
     const router = useRouter();
+    const { user } = useAuth();
     const [progress, setProgress] = useState(0);
     const [status, setStatus] = useState("会話を分析中...");
 
@@ -125,6 +127,7 @@ export default function GenerationPage() {
                             conversationHistory: conversationHistory,
                             elapsedTime: elapsedTime,
                             tone: tone,
+                            userId: user?.id || null, // ログインしている場合はユーザーIDを送信
                         }),
                     });
 

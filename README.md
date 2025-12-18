@@ -60,7 +60,15 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 1. [Supabase](https://supabase.com)でプロジェクトを作成
 2. SQL Editorで `supabase-schema.sql` の内容を実行してテーブルを作成
-3. 環境変数に `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` を設定
+3. **Google認証の設定**:
+   - Supabase Dashboard → Authentication → Providers → Google
+   - Google認証を有効化
+   - Google Cloud ConsoleでOAuth 2.0クライアントIDを作成
+   - リダイレクトURL: `https://your-project-ref.supabase.co/auth/v1/callback`
+   - Client IDとClient SecretをSupabaseに設定
+4. 環境変数に以下を設定:
+   - `NEXT_PUBLIC_SUPABASE_URL`: SupabaseプロジェクトのURL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabaseの匿名キー
 
 **注意**: Supabaseが設定されていない場合、アプリは自動的にlocalStorageにフォールバックします（開発環境では問題ありません）。
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Serif_Display, JetBrains_Mono, Manrope, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import clsx from "clsx";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -48,7 +49,9 @@ export default function RootLayout({
           "antialiased font-sans bg-background text-foreground h-full"
         )}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

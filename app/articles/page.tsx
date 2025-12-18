@@ -3,6 +3,7 @@
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SavedArticle {
     id: string;
@@ -14,13 +15,17 @@ interface SavedArticle {
 }
 
 export default function ArticlesPage() {
+    const { user } = useAuth();
     const [articles, setArticles] = useState<SavedArticle[]>([]);
 
     useEffect(() => {
         const loadArticles = async () => {
             try {
-                // Supabaseから記事一覧を取得
-                const response = await fetch("/api/articles");
+                // Supabaseから記事一覧を取得（ログインしている場合はユーザーIDを指定）
+                const url = user?.id 
+                    ? `/api/articles?userId=${user.id}` 
+                    : "/api/articles";
+                const response = await fetch(url);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.articles) {

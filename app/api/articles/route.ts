@@ -12,10 +12,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
+    // ユーザーIDをクエリパラメータから取得（オプション）
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    let query = supabase
       .from('articles')
       .select('*')
       .order('created_at', { ascending: false });
+
+    // ユーザーIDが指定されている場合は、そのユーザーの記事のみ取得
+    // RLSが有効な場合、認証済みユーザーは自動的に自分の記事のみ見ることができる
+    if (userId) {
+      query = query.eq('user_id', userId);
+    } else {
+      // ユーザーIDがない場合は、user_idがnullの記事（未認証ユーザーの記事）のみ取得
+      query = query.is('user_id', null);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Supabase error:', error);
@@ -39,7 +54,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, theme, content, wordCount, image, imageMimeType, conversationHistory, elapsedTime, tone } = body;
+    const { title, theme, content, wordCount, image, imageMimeType, conversationHistory, elapsedTime, tone, userId } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -59,6 +74,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('articles')
       .insert({
+        user_id: userId || null, // ユーザーID（ログインしている場合）
         title,
         theme: theme || title,
         content,

@@ -4,6 +4,7 @@
 -- articlesテーブルを作成
 CREATE TABLE IF NOT EXISTS articles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE, -- ユーザーID（認証済みユーザーの場合）
   title TEXT NOT NULL,
   theme TEXT NOT NULL,
   content TEXT NOT NULL,
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS articles (
 -- インデックスを作成（検索パフォーマンス向上）
 CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_articles_theme ON articles(theme);
+CREATE INDEX IF NOT EXISTS idx_articles_user_id ON articles(user_id);
 
 -- updated_atを自動更新するトリガー
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -35,11 +37,22 @@ CREATE TRIGGER update_articles_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- Row Level Security (RLS) を有効化（必要に応じて）
--- ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
+-- Row Level Security (RLS) を有効化
+ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 
--- 全ユーザーが読み書きできるポリシー（認証が必要な場合は変更してください）
--- CREATE POLICY "Allow all operations" ON articles
---   FOR ALL
---   USING (true)
---   WITH CHECK (true);
+-- ユーザーは自分の記事のみ読み書き可能
+CREATE POLICY "Users can view their own articles" ON articles
+  FOR SELECT
+  USING (auth.uid() = user_id OR user_id IS NULL);
+
+CREATE POLICY "Users can insert their own articles" ON articles
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+
+CREATE POLICY "Users can update their own articles" ON articles
+  FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own articles" ON articles
+  FOR DELETE
+  USING (auth.uid() = user_id);
