@@ -176,15 +176,41 @@ export async function POST(request: NextRequest) {
     const chapter = CHAPTERS.find(c => c.id === currentChapter) || CHAPTERS[0];
     const nextChapter = CHAPTERS.find(c => c.id === currentChapter + 1);
 
+    // 会話の流れを分析（最近の会話の傾向を把握）
+    const recentMessages = conversationHistory.slice(-6);
+    const userMessages = recentMessages.filter((msg: Message) => msg.role === "user");
+    const mcMessages = recentMessages.filter((msg: Message) => msg.role === "assistant");
+    
+    // 会話の分析
+    const conversationAnalysis = {
+      userMessageCount: userMessages.length,
+      mcMessageCount: mcMessages.length,
+      recentTopics: userMessages.map(m => {
+        // キーワード抽出（簡易版）
+        const words = m.content.split(/[。、！？\s]/).filter(w => w.length > 2);
+        return words.slice(0, 3).join(" ");
+      }).filter(Boolean),
+      isLooping: userMessages.length >= 3 && 
+        userMessages.slice(-3).some((msg, i) => 
+          i > 0 && msg.content.length < 50 && 
+          userMessages[i - 1].content.length < 50
+        ), // 短い発言が続いている = ループの可能性
+      needsDeeperDive: userMessages.some(msg => 
+        msg.content.length > 100 && 
+        !msg.content.includes("？") && 
+        !msg.content.includes("?")
+      ), // 長い発言があるが質問がない = 深掘りが必要
+    };
+
     // 4. ディレクター判断（Claude Sonnet 4 - 速度と精度のバランス）
     const systemPrompt = `あなたはラジオ番組の敏腕ディレクター兼放送作家です。
-MCとゲストの会話をリアルタイムで監視し、以下の役割を果たします：
+MCとゲストの会話をリアルタイムで監視し、積極的に介入して番組を面白くします。
 
 【あなたの役割】
-1. 会話の軌道修正: 話が脱線したらテーマに戻す
-2. 深掘りポイントの指摘: 面白そうな発言を拾うよう指示
-3. 話題提供: 検索で得た情報をMCに伝える（知ったかぶりさせる）
-4. チャプター進行の判断: 会話の流れから次のチャプターに進むべきか判断
+1. **積極的な深掘り指示**: ゲストが面白そうな話をしたら、すぐに「それについてもっと聞いて」と指示
+2. **軌道修正**: 話が脱線したらテーマに戻すよう指示
+3. **話題提供**: 検索で得た情報をMCに伝え、知ったかぶりさせる
+4. **チャプター進行**: 会話の流れから次のチャプターに進むべきか判断
 
 【今日のテーマ】
 ${theme}
@@ -202,18 +228,40 @@ ${chapter.transitionSignals.map(s => `- ${s}`).join("\n")}
 
 ${nextChapter ? `【次のチャプター】\n${nextChapter.name}「${nextChapter.label}」\nゴール:\n${nextChapter.goals.map(g => `- ${g}`).join("\n")}` : "【注意】これが最後のチャプターです。締めに入ってください。"}
 
-${groundingInfo ? `\n【放送作家からのネタ提供】${groundingInfo}` : ""}
+${groundingInfo ? `\n【放送作家からのネタ提供】${groundingInfo}\nこの情報をMCに伝えて、会話に活用させてください。` : ""}
 
 【MC情報】
-${mcId === "hikaru" ? "ヒカル: 鋭いツッコミと深掘りが得意。ストレートな質問で核心を突く。" : ""}
-${mcId === "waka" ? "ワカ: 論理的な質問と自己分析的な話し方。構造的に話を整理する。" : ""}
-${mcId === "kono" ? "コノ: 共感力が高く、聞き上手。感情に寄り添いながら引き出す。" : ""}
+${mcId === "hikaru" ? "ヒカル: 鋭いツッコミと深掘りが得意。ストレートな質問で核心を突く。指示は「それについてもっと聞いて」「具体的には？」「なぜそう思ったの？」など具体的に。" : ""}
+${mcId === "waka" ? "ワカ: 論理的な質問と自己分析的な話し方。構造的に話を整理する。指示は「どう考えてんの？」「それってさ、」で始まる質問を促す。" : ""}
+${mcId === "kono" ? "コノ: 共感力が高く、聞き上手。感情に寄り添いながら引き出す。指示は「どんな気持ちだった？」「それでどうなった？」など感情を引き出す質問を。" : ""}
+
+【会話の分析】
+- 最近のゲスト発言数: ${conversationAnalysis.userMessageCount}回
+- 最近のMC発言数: ${conversationAnalysis.mcMessageCount}回
+- 最近の話題: ${conversationAnalysis.recentTopics.join(", ") || "なし"}
+- ループの可能性: ${conversationAnalysis.isLooping ? "あり（同じ話題で回っている）" : "なし"}
+- 深掘りが必要: ${conversationAnalysis.needsDeeperDive ? "あり（長い発言があるが深掘りされていない）" : "なし"}
+
+【指示の出し方 - 重要】
+以下のような具体的で実行可能な指示を出してください：
+
+良い例：
+- "ゲストが「〇〇が大変だった」と言った。具体的にどんなことが大変だったのか、エピソードを聞いて"
+- "ゲストが「〇〇を始めた」と言った。きっかけは何だったのか、なぜ始めたのか深掘りして"
+- "話が抽象的になっている。具体的なエピソードや体験談を聞いて"
+- "ゲストが感情的な言葉（「嬉しかった」「辛かった」など）を使った。その時の気持ちをもっと聞いて"
+- "ネタ情報「〇〇について...」がある。これを会話に自然に織り交ぜて、ゲストの話と関連付けて"
+
+悪い例：
+- "もっと深掘りして"（抽象的すぎる）
+- "会話を続けて"（何をすべきか不明確）
+- "質問して"（どんな質問か不明確）
 
 【出力形式 - 必ずJSON形式で返答】
 {
   "shouldAdvanceChapter": true/false,  // 次のチャプターに進むべきか
   "advanceReason": "進む理由（shouldAdvanceChapterがtrueの場合のみ）",
-  "instruction": "MCへの具体的な指示（1〜2文）",
+  "instruction": "MCへの具体的で実行可能な指示（2〜3文、必ず具体的な質問内容や深掘りポイントを指定）",
   "groundingTip": "ネタがあれば活用方法のヒント（なければnull）",
   "notableQuote": "ゲストの発言で記事に使えそうな印象的なフレーズ（20〜50文字、なければnull）"
 }
@@ -229,30 +277,41 @@ ${mcId === "kono" ? "コノ: 共感力が高く、聞き上手。感情に寄り
 【判断基準】
 - チャプターを進める条件:
   - ゴールが概ね達成された
-  - 同じ話題でループし始めた
+  - 同じ話題でループし始めた（5発言以上同じ話題）
   - ゲストが次の話題を求めているサインがある
   - 6発言以上続いた（各チャプターは4-8発言が目安）
 - チャプターを維持する条件:
   - まだ核心に迫っていない
   - 面白いエピソードが展開中
+  - 深掘りがまだ足りない
 
-【重要】
-- 番組をダレさせないことが最優先
-- 同じ話題で5発言以上ループしたら、次のチャプターへ進める判断を
-- 「結」のチャプターでは shouldAdvanceChapter は常に false
-- ネタがある場合は必ず instruction に含める`;
+【重要ルール】
+1. **必ず具体的な指示を出す**: 「それについてもっと聞いて」ではなく「〇〇について、具体的にどんなことがあったのか聞いて」
+2. **積極的に介入**: ゲストが面白そうな話をしたら、すぐに深掘り指示を出す
+3. **番組をダレさせない**: 同じ話題で3発言以上続いたら、深掘り指示か次の話題への移行を検討
+4. **ネタは必ず活用**: groundingInfoがある場合は、必ずinstructionに含める
+5. 「結」のチャプターでは shouldAdvanceChapter は常に false
+6. **指示は常に出す**: 会話が順調でも、次の深掘りポイントや話題提供の指示を出す`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514", // 速度と精度のバランス
-      max_tokens: 500,
+      max_tokens: 800, // より詳細な指示を出すために増やす
       system: systemPrompt,
       messages: [
         {
           role: "user",
-          content: `以下の会話を分析してください。JSON形式で返答してください。
+          content: `以下の会話を分析し、MCへの具体的で実行可能な指示を出してください。必ずJSON形式で返答してください。
 
 【会話ログ（${conversationHistory.length}発言）】
-${conversationText}`,
+${conversationText}
+
+【分析ポイント】
+- ゲストの最近の発言で、深掘りできそうなポイントは？
+- 話がループしていないか？
+- テーマから脱線していないか？
+- ネタ情報を活用できるタイミングは？
+
+上記を踏まえて、MCへの具体的な指示（instruction）を必ず出してください。`,
         },
       ],
     });

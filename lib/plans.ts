@@ -6,20 +6,23 @@ export interface PlanLimits {
   planType: PlanType;
   maxArticlesPerWeek: number;
   imageGenerationEnabled: boolean;
+  directorAIEnabled: boolean; // Director AI機能の有効/無効
   price: number; // 月額料金（円）
 }
 
 export const PLANS: Record<PlanType, PlanLimits> = {
   free: {
     planType: 'free',
-    maxArticlesPerWeek: 3,
+    maxArticlesPerWeek: 1, // 週1記事
     imageGenerationEnabled: false,
+    directorAIEnabled: false, // フリープランではDirector AI無効
     price: 0,
   },
   premium: {
     planType: 'premium',
-    maxArticlesPerWeek: 10,
+    maxArticlesPerWeek: 7, // 週7記事
     imageGenerationEnabled: true,
+    directorAIEnabled: true, // プレミアムプランではDirector AI有効
     price: 980,
   },
 };

@@ -9,6 +9,7 @@ interface UseGeminiLiveOptions {
   mcId: string;
   theme: string;
   memo?: string;
+  directorAIEnabled?: boolean; // Director AI機能の有効/無効（デフォルト: true）
   onMessage?: (text: string, isUser: boolean) => void;
   onStateChange?: (state: ConversationState) => void;
   onChapterChange?: (chapter: number, name: string, label: string) => void;
@@ -64,7 +65,7 @@ function cleanTranscript(text: string | object): string {
 }
 
 export function useGeminiLive(options: UseGeminiLiveOptions) {
-  const { mcId, theme, memo, onMessage, onStateChange, onChapterChange, onQuoteExtracted, onAutoEnd, onError } = options;
+  const { mcId, theme, memo, directorAIEnabled = true, onMessage, onStateChange, onChapterChange, onQuoteExtracted, onAutoEnd, onError } = options;
 
   const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
   const [conversationState, setConversationState] = useState<ConversationState>("idle");
@@ -118,6 +119,11 @@ export function useGeminiLive(options: UseGeminiLiveOptions) {
 
   // ディレクターに指示を求める
   const checkDirector = useCallback(async () => {
+    // Director AIが無効の場合はスキップ
+    if (!directorAIEnabled) {
+      return;
+    }
+    
     const currentMessages = messagesRef.current;
     console.log(`🎬 ディレクターチェック: ${currentMessages.length}メッセージ`);
     
@@ -159,32 +165,41 @@ export function useGeminiLive(options: UseGeminiLiveOptions) {
         }
       }
       
-      // MCへの指示送信（MCが話している時は送信しない - 次の発話時に反映される）
+      // MCへの指示送信（積極的に介入する）
       if (data.instruction && wsRef.current?.readyState === WebSocket.OPEN) {
-        console.log("📋 ディレクター指示（待機）:", data.instruction);
+        console.log("📋 ディレクター指示:", data.instruction);
         if (data.groundingTip) {
           console.log("💡 ネタ活用:", data.groundingTip);
         }
         
-        // チャプター移行の場合のみ即座に送信
-        // 通常の指示はMCが自然に反映するのを待つ（会話を中断しない）
+        // 指示をMCに送信（会話の流れを改善するため積極的に介入）
+        let instructionText = `[ディレクターからの指示] ${data.instruction}`;
+        
         if (data.shouldAdvanceChapter && data.chapterInfo) {
-          const instructionText = `[ディレクターからの指示] ${data.instruction}\n[チャプター移行] ${data.chapterInfo.name}「${data.chapterInfo.label}」に進んでください。`;
-          
-          const directorMessage = {
-            clientContent: {
-              turns: [
-                {
-                  role: "user",
-                  parts: [{ text: instructionText }],
-                },
-              ],
-              turnComplete: true,
-            },
-          };
-          wsRef.current.send(JSON.stringify(directorMessage));
+          instructionText += `\n[チャプター移行] ${data.chapterInfo.name}「${data.chapterInfo.label}」に進んでください。`;
         }
-        // 通常の指示はログに出すだけ（MCの次のターンで自然に反映される想定）
+        
+        if (data.groundingTip) {
+          instructionText += `\n[ネタ情報] ${data.groundingTip}`;
+        }
+        
+        // MCが話していない時、または会話が止まっている時に送信
+        // 会話を中断しないよう、MCの次のターンで反映されるように送信
+        const directorMessage = {
+          clientContent: {
+            turns: [
+              {
+                role: "user",
+                parts: [{ text: instructionText }],
+              },
+            ],
+            turnComplete: true,
+          },
+        };
+        
+        // 指示を送信（MCの次の発話時に反映される）
+        wsRef.current.send(JSON.stringify(directorMessage));
+        console.log("📤 ディレクター指示をMCに送信しました");
       }
       
       // 引用抽出：記事に使えそうなフレーズをコールバック
@@ -195,7 +210,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions) {
     } catch (error) {
       console.error("Director check failed:", error);
     }
-  }, [theme, memo, mcId, onChapterChange, onQuoteExtracted]);
+  }, [theme, memo, mcId, directorAIEnabled, onChapterChange, onQuoteExtracted]);
 
   // 非アクティブタイムアウト（5分）
   const resetInactivityTimeout = useCallback(() => {

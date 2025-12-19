@@ -38,24 +38,22 @@ export default function SettingsPage() {
         router.push("/");
     };
 
-    // ユーザー名の初期値を取得（メールアドレスの@より前の部分、または表示名）
+    // ユーザー名の表示（個人情報を最小限に：メールアドレスの@より前の部分のみ）
     const getUserDisplayName = () => {
         if (!user) return "ゲスト";
-        return user.user_metadata?.full_name || 
-               user.user_metadata?.name || 
-               user.email?.split("@")[0] || 
-               "ユーザー";
+        // メールアドレスの@より前の部分のみ表示（個人情報を最小限に）
+        return user.email?.split("@")[0] || "ユーザー";
     };
 
-    // ユーザーのイニシャルを取得
+    // ユーザーのイニシャルを取得（メールアドレスの最初の文字）
     const getUserInitial = () => {
-        const name = getUserDisplayName();
-        return name.charAt(0).toUpperCase();
+        if (!user?.email) return "U";
+        return user.email.charAt(0).toUpperCase();
     };
 
-    // ユーザーのアバター画像を取得
+    // アバター画像は非表示（個人情報を最小限に）
     const getUserAvatar = () => {
-        return user?.user_metadata?.avatar_url || null;
+        return null; // アバター画像は表示しない
     };
 
     // プラン情報を取得
@@ -199,7 +197,8 @@ export default function SettingsPage() {
                                     )}
                                     <div className="flex-1">
                                         <div className="font-bold text-foreground">{getUserDisplayName()}</div>
-                                        <div className="text-xs text-muted-foreground">{user.email}</div>
+                                        {/* メールアドレスは非表示（個人情報を最小限に） */}
+                                        <div className="text-xs text-muted-foreground">ログイン中</div>
                                     </div>
                                 </div>
                                 
@@ -229,6 +228,12 @@ export default function SettingsPage() {
                                                 <span>画像生成:</span>
                                                 <span className={limits.imageGenerationEnabled ? 'text-chart-1 font-medium' : 'text-muted-foreground'}>
                                                     {limits.imageGenerationEnabled ? '✓ 利用可能' : '✗ 利用不可'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span>Director AI:</span>
+                                                <span className={limits.directorAIEnabled ? 'text-chart-1 font-medium' : 'text-muted-foreground'}>
+                                                    {limits.directorAIEnabled ? '✓ 有効' : '✗ 無効'}
                                                 </span>
                                             </div>
                                             {planType === 'premium' && (
