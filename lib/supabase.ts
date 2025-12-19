@@ -22,3 +22,4 @@ export const createSupabaseClient = () => {
   
   return createClient(url, key);
 };
+
