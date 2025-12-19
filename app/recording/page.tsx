@@ -29,9 +29,13 @@ export default function RecordingPage() {
   const [mcId, setMcId] = useState("");
   const [displayMessages, setDisplayMessages] = useState<Message[]>([]);
   const [shouldAutoEnd, setShouldAutoEnd] = useState(false);
+  const [bgmEnabled, setBgmEnabled] = useState(true);
+  const [bgmVolume, setBgmVolume] = useState(0.15); // デフォルト15%（薄く）
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
+  const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
+  const bgmGainNodeRef = useRef<GainNode | null>(null);
 
   // Gemini Live フック
   const {
@@ -80,11 +84,78 @@ export default function RecordingPage() {
     const savedTheme = localStorage.getItem("radio2note_theme");
     const savedMemo = localStorage.getItem("radio2note_memo");
     const savedMcId = localStorage.getItem("radio2note_mcId");
+    const savedBgmEnabled = localStorage.getItem("radio2note_bgm_enabled");
+    const savedBgmVolume = localStorage.getItem("radio2note_bgm_volume");
 
     if (savedTheme) setTheme(savedTheme);
     if (savedMemo) setMemo(savedMemo);
     if (savedMcId) setMcId(savedMcId);
+    if (savedBgmEnabled !== null) setBgmEnabled(savedBgmEnabled === 'true');
+    if (savedBgmVolume) setBgmVolume(parseFloat(savedBgmVolume));
   }, []);
+
+  // BGMの初期化と再生
+  useEffect(() => {
+    if (connectionState !== "connected") return;
+
+    // BGM用のAudio要素を作成
+    const bgmAudio = new Audio();
+    bgmAudio.loop = true;
+    bgmAudio.preload = 'auto';
+    
+    // FMラジオっぽいBGM（フリー音源のURLを使用）
+    // 注意: 実際のフリー音源URLに置き換える必要があります
+    // 例: https://example.com/fm-radio-bgm.mp3
+    bgmAudio.src = '/bgm/fm-radio-bgm.mp3'; // public/bgm/ フォルダに配置
+    
+    bgmAudioRef.current = bgmAudio;
+
+    // AudioContextで音量を制御
+    const audioContext = new AudioContext();
+    const source = audioContext.createMediaElementSource(bgmAudio);
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = bgmVolume;
+    bgmGainNodeRef.current = gainNode;
+    
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // BGMを再生
+    if (bgmEnabled) {
+      bgmAudio.play().catch(error => {
+        console.error('BGM再生エラー:', error);
+        // 自動再生がブロックされた場合は無視（ユーザー操作後に再生される）
+      });
+    }
+
+    return () => {
+      bgmAudio.pause();
+      bgmAudio.src = '';
+      audioContext.close();
+    };
+  }, [connectionState, bgmEnabled, bgmVolume]);
+
+  // BGM音量の更新
+  useEffect(() => {
+    if (bgmGainNodeRef.current) {
+      bgmGainNodeRef.current.gain.value = bgmVolume;
+    }
+    localStorage.setItem('radio2note_bgm_volume', bgmVolume.toString());
+  }, [bgmVolume]);
+
+  // BGM有効/無効の更新
+  useEffect(() => {
+    if (bgmAudioRef.current) {
+      if (bgmEnabled) {
+        bgmAudioRef.current.play().catch(error => {
+          console.error('BGM再生エラー:', error);
+        });
+      } else {
+        bgmAudioRef.current.pause();
+      }
+    }
+    localStorage.setItem('radio2note_bgm_enabled', bgmEnabled.toString());
+  }, [bgmEnabled]);
 
   // theme と mcId が設定されたら接続開始（一度だけ）
   const hasConnectedRef = useRef(false);
@@ -111,6 +182,12 @@ export default function RecordingPage() {
   }, [connectionState]);
 
   const handleEndRecording = () => {
+    // BGMを停止
+    if (bgmAudioRef.current) {
+      bgmAudioRef.current.pause();
+      bgmAudioRef.current.src = '';
+    }
+    
     disconnect();
     // useGeminiLiveのmessagesを優先（より信頼性が高い）
     const conversationToSave = messages.length > 0 ? messages : displayMessages;
@@ -166,21 +243,38 @@ export default function RecordingPage() {
         >
           <Icon icon="solar:arrow-left-linear" className="text-2xl" />
         </Link>
-        <button
-          onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-          className={clsx(
-            "flex items-center justify-center size-11 rounded-full border transition-colors",
-            isAudioEnabled
-              ? "bg-primary/20 border-primary/50 text-primary"
-              : "bg-card border-border/50 text-muted-foreground"
-          )}
-          title={isAudioEnabled ? "音声をオフにする" : "音声をオンにする"}
-        >
-          <Icon
-            icon={isAudioEnabled ? "solar:soundwave-bold" : "solar:soundwave-off-bold"}
-            className="text-xl"
-          />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setBgmEnabled(!bgmEnabled)}
+            className={clsx(
+              "flex items-center justify-center size-11 rounded-full border transition-colors",
+              bgmEnabled
+                ? "bg-chart-1/20 border-chart-1/50 text-chart-1"
+                : "bg-card border-border/50 text-muted-foreground"
+            )}
+            title={bgmEnabled ? "BGMをオフにする" : "BGMをオンにする"}
+          >
+            <Icon
+              icon={bgmEnabled ? "solar:music-note-bold" : "solar:music-note-off-bold"}
+              className="text-xl"
+            />
+          </button>
+          <button
+            onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+            className={clsx(
+              "flex items-center justify-center size-11 rounded-full border transition-colors",
+              isAudioEnabled
+                ? "bg-primary/20 border-primary/50 text-primary"
+                : "bg-card border-border/50 text-muted-foreground"
+            )}
+            title={isAudioEnabled ? "音声をオフにする" : "音声をオンにする"}
+          >
+            <Icon
+              icon={isAudioEnabled ? "solar:soundwave-bold" : "solar:soundwave-off-bold"}
+              className="text-xl"
+            />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
