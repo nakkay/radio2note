@@ -52,6 +52,15 @@ export async function POST(request: NextRequest) {
             session.subscription as string
           ) as Stripe.Subscription;
 
+          // サブスクリプションアイテムから期間情報を取得（新しいAPIバージョンではitemレベルに移動）
+          const subscriptionItem = subscription.items.data[0];
+          const currentPeriodStart = subscriptionItem?.current_period_start 
+            ? new Date(subscriptionItem.current_period_start * 1000).toISOString()
+            : new Date().toISOString();
+          const currentPeriodEnd = subscriptionItem?.current_period_end
+            ? new Date(subscriptionItem.current_period_end * 1000).toISOString()
+            : new Date().toISOString();
+
           // Supabaseに保存
           await supabase
             .from('user_subscriptions')
@@ -59,11 +68,11 @@ export async function POST(request: NextRequest) {
               user_id: userId,
               stripe_customer_id: subscription.customer as string,
               stripe_subscription_id: subscription.id,
-              stripe_price_id: subscription.items.data[0]?.price.id,
+              stripe_price_id: subscriptionItem?.price.id,
               status: subscription.status === 'active' ? 'active' : subscription.status,
               plan_type: 'premium',
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              current_period_start: currentPeriodStart,
+              current_period_end: currentPeriodEnd,
               cancel_at_period_end: subscription.cancel_at_period_end || false,
             });
         }
@@ -81,12 +90,21 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (subData?.user_id) {
+          // サブスクリプションアイテムから期間情報を取得（新しいAPIバージョンではitemレベルに移動）
+          const subscriptionItem = subscription.items.data[0];
+          const currentPeriodStart = subscriptionItem?.current_period_start 
+            ? new Date(subscriptionItem.current_period_start * 1000).toISOString()
+            : new Date().toISOString();
+          const currentPeriodEnd = subscriptionItem?.current_period_end
+            ? new Date(subscriptionItem.current_period_end * 1000).toISOString()
+            : new Date().toISOString();
+
           await supabase
             .from('user_subscriptions')
             .update({
               status: subscription.status === 'active' ? 'active' : subscription.status,
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              current_period_start: currentPeriodStart,
+              current_period_end: currentPeriodEnd,
               cancel_at_period_end: subscription.cancel_at_period_end || false,
             })
             .eq('user_id', subData.user_id);
