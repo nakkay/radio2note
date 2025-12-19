@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       payment_method_types: ['card'],
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID || '', // 月額980円の価格ID
+          price: process.env.STRIPE_PRICE_ID || '', // 月額1,280円の価格ID
           quantity: 1,
         },
       ],

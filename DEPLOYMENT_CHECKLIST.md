@@ -19,7 +19,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Stripe (有料プラン用)
 STRIPE_SECRET_KEY=sk_live_...
-STRIPE_PRICE_ID=price_...  # 月額980円の価格ID
+STRIPE_PRICE_ID=price_...  # 月額1,280円の価格ID
 STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Next.js
@@ -46,7 +46,7 @@ ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
 
 ## Stripeの設定
 
-1. ✅ 価格を作成（月額980円）
+1. ✅ 価格を作成（月額1,280円）
 2. ✅ Webhookエンドポイントを設定:
    - URL: `https://your-domain.vercel.app/api/stripe/webhook`
    - イベント: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`

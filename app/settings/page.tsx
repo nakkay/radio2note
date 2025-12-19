@@ -232,8 +232,8 @@ export default function SettingsPage() {
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span>Director AI:</span>
-                                                <span className={limits.directorAIEnabled ? 'text-chart-1 font-medium' : 'text-muted-foreground'}>
-                                                    {limits.directorAIEnabled ? '✓ 有効' : '✗ 無効'}
+                                                <span className="text-chart-1 font-medium">
+                                                    ✓ 有効（全プラン）
                                                 </span>
                                             </div>
                                             {planType === 'premium' && (
@@ -258,7 +258,7 @@ export default function SettingsPage() {
                                             </div>
                                             <div>
                                                 <span className="font-medium text-sm block">プレミアムプランにアップグレード</span>
-                                                <span className="text-xs text-muted-foreground">月額980円</span>
+                                                <span className="text-xs text-muted-foreground">月額1,280円</span>
                                             </div>
                                         </div>
                                         <Icon icon="solar:arrow-right-linear" className="text-muted-foreground text-xl" />

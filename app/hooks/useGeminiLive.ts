@@ -9,7 +9,6 @@ interface UseGeminiLiveOptions {
   mcId: string;
   theme: string;
   memo?: string;
-  directorAIEnabled?: boolean; // Director AI機能の有効/無効（デフォルト: true）
   onMessage?: (text: string, isUser: boolean) => void;
   onStateChange?: (state: ConversationState) => void;
   onChapterChange?: (chapter: number, name: string, label: string) => void;
@@ -65,7 +64,7 @@ function cleanTranscript(text: string | object): string {
 }
 
 export function useGeminiLive(options: UseGeminiLiveOptions) {
-  const { mcId, theme, memo, directorAIEnabled = true, onMessage, onStateChange, onChapterChange, onQuoteExtracted, onAutoEnd, onError } = options;
+  const { mcId, theme, memo, onMessage, onStateChange, onChapterChange, onQuoteExtracted, onAutoEnd, onError } = options;
 
   const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
   const [conversationState, setConversationState] = useState<ConversationState>("idle");
@@ -119,11 +118,6 @@ export function useGeminiLive(options: UseGeminiLiveOptions) {
 
   // ディレクターに指示を求める
   const checkDirector = useCallback(async () => {
-    // Director AIが無効の場合はスキップ
-    if (!directorAIEnabled) {
-      return;
-    }
-    
     const currentMessages = messagesRef.current;
     console.log(`🎬 ディレクターチェック: ${currentMessages.length}メッセージ`);
     
@@ -210,7 +204,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions) {
     } catch (error) {
       console.error("Director check failed:", error);
     }
-  }, [theme, memo, mcId, directorAIEnabled, onChapterChange, onQuoteExtracted]);
+  }, [theme, memo, mcId, onChapterChange, onQuoteExtracted]);
 
   // 非アクティブタイムアウト（5分）
   const resetInactivityTimeout = useCallback(() => {

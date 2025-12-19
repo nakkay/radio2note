@@ -6,8 +6,6 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { useGeminiLive, ConversationState } from "../hooks/useGeminiLive";
-import { useAuth } from "@/contexts/AuthContext";
-import { getUserPlan, getPlanLimits } from "@/lib/plans";
 
 const STEPS = [
   { id: 1, label: "起", description: "導入・アイスブレイク", duration: 3 },
@@ -24,7 +22,6 @@ interface Message {
 
 export default function RecordingPage() {
   const router = useRouter();
-  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [theme, setTheme] = useState("");
@@ -32,25 +29,9 @@ export default function RecordingPage() {
   const [mcId, setMcId] = useState("");
   const [displayMessages, setDisplayMessages] = useState<Message[]>([]);
   const [shouldAutoEnd, setShouldAutoEnd] = useState(false);
-  const [directorAIEnabled, setDirectorAIEnabled] = useState(true);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
-
-  // ユーザーのプランを取得してDirector AIの有効/無効を設定
-  useEffect(() => {
-    const loadPlan = async () => {
-      if (user?.id) {
-        const planType = await getUserPlan(user.id);
-        const limits = getPlanLimits(planType);
-        setDirectorAIEnabled(limits.directorAIEnabled);
-      } else {
-        // 未ログイン時はフリープランとみなす
-        setDirectorAIEnabled(false);
-      }
-    };
-    loadPlan();
-  }, [user]);
 
   // Gemini Live フック
   const {
@@ -65,7 +46,6 @@ export default function RecordingPage() {
     mcId,
     theme,
     memo,
-    directorAIEnabled,
     onMessage: (text, isUser) => {
       // メッセージを保存（記事生成用）
       setDisplayMessages((prev) => [

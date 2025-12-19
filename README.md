@@ -53,7 +53,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 # Stripe (有料プラン用)
 STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-STRIPE_PRICE_ID=your_stripe_price_id  # 月額980円の価格ID
+STRIPE_PRICE_ID=your_stripe_price_id  # 月額1,280円の価格ID
 STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 
 # Next.js
@@ -86,7 +86,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 2. **価格を作成**:
    - Stripe Dashboard → Products → Add product
    - 名前: "Radio2Note Premium"
-   - 価格: 980円（月額）
+   - 価格: 1,280円（月額）
    - 価格IDをコピー
 3. **Webhookエンドポイントを設定**:
    - Stripe Dashboard → Developers → Webhooks → Add endpoint
