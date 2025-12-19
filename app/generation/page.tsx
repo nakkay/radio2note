@@ -27,7 +27,8 @@ export default function GenerationPage() {
                         const currentCount = countData.count || 0;
                         
                         if (currentCount >= limits.maxArticlesPerWeek) {
-                            alert(`今週の記事作成上限（${limits.maxArticlesPerWeek}記事）に達しています。\n有料プランにアップグレードすると、週10記事まで作成できます。`);
+                            const premiumLimits = getPlanLimits('premium');
+                            alert(`今週の記事作成上限（${limits.maxArticlesPerWeek}記事）に達しています。\n有料プランにアップグレードすると、週${premiumLimits.maxArticlesPerWeek}記事まで作成できます。`);
                             router.push("/settings");
                             return;
                         }
