@@ -15,6 +15,23 @@ export default function SettingsPage() {
     const [isLoadingPlan, setIsLoadingPlan] = useState(true);
     const [isUpgrading, setIsUpgrading] = useState(false);
 
+    // URLパラメータから成功/キャンセルメッセージを取得
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get('success') === 'true') {
+            alert('プレミアムプランへのアップグレードが完了しました！');
+            // URLからパラメータを削除
+            window.history.replaceState({}, '', '/settings');
+            // プラン情報を再取得
+            if (user?.id) {
+                getUserPlan(user.id).then(setPlanType);
+            }
+        } else if (searchParams.get('canceled') === 'true') {
+            alert('アップグレードがキャンセルされました。');
+            window.history.replaceState({}, '', '/settings');
+        }
+    }, [user]);
+
     const handleSignOut = async () => {
         if (!confirm("ログアウトしますか？")) return;
         await signOut();
@@ -201,9 +218,24 @@ export default function SettingsPage() {
                                                 {planType === 'premium' ? 'プレミアム' : 'フリー'}
                                             </span>
                                         </div>
-                                        <div className="text-xs text-muted-foreground space-y-1">
-                                            <div>今週の記事作成: {articleCount} / {limits.maxArticlesPerWeek}件</div>
-                                            <div>画像生成: {limits.imageGenerationEnabled ? '利用可能' : '利用不可'}</div>
+                                        <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                                            <div className="flex items-center justify-between">
+                                                <span>今週の記事作成:</span>
+                                                <span className={articleCount >= limits.maxArticlesPerWeek ? 'text-destructive font-bold' : ''}>
+                                                    {articleCount} / {limits.maxArticlesPerWeek}件
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span>画像生成:</span>
+                                                <span className={limits.imageGenerationEnabled ? 'text-chart-1 font-medium' : 'text-muted-foreground'}>
+                                                    {limits.imageGenerationEnabled ? '✓ 利用可能' : '✗ 利用不可'}
+                                                </span>
+                                            </div>
+                                            {planType === 'premium' && (
+                                                <div className="text-[10px] text-muted-foreground mt-2 pt-2 border-t border-border/30">
+                                                    月額{limits.price.toLocaleString()}円
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}

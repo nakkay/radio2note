@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 const genai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY || "" });
 
@@ -18,15 +19,36 @@ export async function POST(request: NextRequest) {
     // プランチェック: フリープランでは画像生成不可
     if (userId) {
       try {
-        const planResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/user/plan?userId=${userId}`);
-        if (planResponse.ok) {
-          const planData = await planResponse.json();
-          if (planData.planType !== 'premium') {
+        // サーバー側で直接Supabaseからプラン情報を取得（より効率的）
+        if (supabase) {
+          const { data: subscription } = await supabase
+            .from('user_subscriptions')
+            .select('plan_type, status, current_period_end')
+            .eq('user_id', userId)
+            .single();
+
+          // サブスクリプションがない、または無効な場合はフリープラン
+          if (!subscription || subscription.status !== 'active' || 
+              (subscription.current_period_end && new Date(subscription.current_period_end) < new Date())) {
             return NextResponse.json(
               { error: "Image generation not available for free plan", success: false },
               { status: 403 }
             );
           }
+
+          // プレミアムプランの場合のみ画像生成を許可
+          if (subscription.plan_type !== 'premium') {
+            return NextResponse.json(
+              { error: "Image generation not available for free plan", success: false },
+              { status: 403 }
+            );
+          }
+        } else {
+          // Supabaseが設定されていない場合はフリープランとみなす
+          return NextResponse.json(
+            { error: "Image generation not available for free plan", success: false },
+            { status: 403 }
+          );
         }
       } catch (error) {
         // プラン取得に失敗した場合はフリープランとみなす
