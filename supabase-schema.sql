@@ -4,7 +4,7 @@
 -- articlesテーブルを作成
 CREATE TABLE IF NOT EXISTS articles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE, -- ユーザーID（認証済みユーザーの場合）
+  user_id UUID, -- ユーザーID（認証済みユーザーの場合）
   title TEXT NOT NULL,
   theme TEXT NOT NULL,
   content TEXT NOT NULL,
@@ -17,6 +17,31 @@ CREATE TABLE IF NOT EXISTS articles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- user_idカラムが存在しない場合は追加（既存テーブルへの対応）
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'articles' AND column_name = 'user_id'
+  ) THEN
+    ALTER TABLE articles ADD COLUMN user_id UUID;
+  END IF;
+END $$;
+
+-- 外部キー制約を追加（既に存在しない場合のみ）
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints 
+    WHERE constraint_name = 'articles_user_id_fkey' 
+    AND table_name = 'articles'
+  ) THEN
+    ALTER TABLE articles 
+    ADD CONSTRAINT articles_user_id_fkey 
+    FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- インデックスを作成（検索パフォーマンス向上）
 CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at DESC);
@@ -40,7 +65,7 @@ CREATE TRIGGER update_articles_updated_at
 -- user_subscriptionsテーブルを作成（Stripeサブスクリプション管理）
 CREATE TABLE IF NOT EXISTS user_subscriptions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE NOT NULL,
+  user_id UUID UNIQUE NOT NULL,
   stripe_customer_id TEXT UNIQUE,
   stripe_subscription_id TEXT UNIQUE,
   stripe_price_id TEXT, -- Stripeの価格ID
@@ -52,6 +77,20 @@ CREATE TABLE IF NOT EXISTS user_subscriptions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- 外部キー制約を追加（既に存在しない場合のみ）
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints 
+    WHERE constraint_name = 'user_subscriptions_user_id_fkey' 
+    AND table_name = 'user_subscriptions'
+  ) THEN
+    ALTER TABLE user_subscriptions 
+    ADD CONSTRAINT user_subscriptions_user_id_fkey 
+    FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- インデックスを作成
 CREATE INDEX IF NOT EXISTS idx_user_subscriptions_user_id ON user_subscriptions(user_id);
