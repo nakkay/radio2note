@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
           // サブスクリプション情報を取得
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
-          );
+          ) as Stripe.Subscription;
 
           // Supabaseに保存
           await supabase
