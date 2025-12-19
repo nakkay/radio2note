@@ -332,13 +332,25 @@ export function useGeminiLive(options: UseGeminiLiveOptions) {
       audioContextRef.current = new AudioContext({ sampleRate: 24000 });
 
       // マイクアクセス（エコーキャンセル有効）
+      // 保存されているマイク設定を読み込む
+      const savedDeviceId = typeof window !== 'undefined' 
+        ? localStorage.getItem('radio2note_microphone_device_id') 
+        : null;
+      
+      const audioConstraints: MediaTrackConstraints = {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        sampleRate: 16000,
+      };
+      
+      // デバイスIDが指定されている場合は使用
+      if (savedDeviceId) {
+        audioConstraints.deviceId = { exact: savedDeviceId };
+      }
+
       mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 16000,
-        },
+        audio: audioConstraints,
       });
 
       // Gemini Live API WebSocket接続
