@@ -57,6 +57,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- トリガーが既に存在する場合は削除してから再作成
+DROP TRIGGER IF EXISTS update_articles_updated_at ON articles;
 CREATE TRIGGER update_articles_updated_at
   BEFORE UPDATE ON articles
   FOR EACH ROW
@@ -98,6 +100,7 @@ CREATE INDEX IF NOT EXISTS idx_user_subscriptions_stripe_customer_id ON user_sub
 CREATE INDEX IF NOT EXISTS idx_user_subscriptions_stripe_subscription_id ON user_subscriptions(stripe_subscription_id);
 
 -- updated_atを自動更新するトリガー
+DROP TRIGGER IF EXISTS update_user_subscriptions_updated_at ON user_subscriptions;
 CREATE TRIGGER update_user_subscriptions_updated_at
   BEFORE UPDATE ON user_subscriptions
   FOR EACH ROW
@@ -107,6 +110,7 @@ CREATE TRIGGER update_user_subscriptions_updated_at
 ALTER TABLE user_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- ユーザーは自分のサブスクリプション情報のみ読み取り可能
+DROP POLICY IF EXISTS "Users can view their own subscription" ON user_subscriptions;
 CREATE POLICY "Users can view their own subscription" ON user_subscriptions
   FOR SELECT
   USING (auth.uid() = user_id);
@@ -114,19 +118,23 @@ CREATE POLICY "Users can view their own subscription" ON user_subscriptions
 -- Row Level Security (RLS) を有効化
 ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 
--- ユーザーは自分の記事のみ読み書き可能
+-- ユーザーは自分の記事のみ読み書き可能（既存ポリシーを削除してから再作成）
+DROP POLICY IF EXISTS "Users can view their own articles" ON articles;
 CREATE POLICY "Users can view their own articles" ON articles
   FOR SELECT
   USING (auth.uid() = user_id OR user_id IS NULL);
 
+DROP POLICY IF EXISTS "Users can insert their own articles" ON articles;
 CREATE POLICY "Users can insert their own articles" ON articles
   FOR INSERT
   WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
 
+DROP POLICY IF EXISTS "Users can update their own articles" ON articles;
 CREATE POLICY "Users can update their own articles" ON articles
   FOR UPDATE
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own articles" ON articles;
 CREATE POLICY "Users can delete their own articles" ON articles
   FOR DELETE
   USING (auth.uid() = user_id);
