@@ -23,15 +23,31 @@ export const supabase = supabaseUrl && (supabaseServiceRoleKey || supabaseAnonKe
     )
   : null;
 
-// クライアントサイド用のSupabaseクライアント
+// クライアントサイド用のSupabaseクライアント（シングルトンパターン）
+let clientSupabaseInstance: ReturnType<typeof createClient> | null = null;
+
 export const createSupabaseClient = () => {
   if (typeof window === 'undefined') return null;
+  
+  // 既にインスタンスが作成されている場合は再利用
+  if (clientSupabaseInstance) {
+    return clientSupabaseInstance;
+  }
   
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
   
   if (!url || !key) return null;
   
-  return createClient(url, key);
+  // 新しいインスタンスを作成して保存
+  clientSupabaseInstance = createClient(url, key, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  });
+  
+  return clientSupabaseInstance;
 };
 
