@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { supabase } from '@/lib/supabase';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-12-15.clover',
-});
+// Stripeクライアントを取得（環境変数が設定されている場合のみ）
+function getStripeClient(): Stripe | null {
+  const apiKey = process.env.STRIPE_SECRET_KEY;
+  if (!apiKey) {
+    return null;
+  }
+  return new Stripe(apiKey, {
+    apiVersion: '2025-12-15.clover',
+  });
+}
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
@@ -17,6 +24,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Missing signature or webhook secret' },
         { status: 400 }
+      );
+    }
+
+    const stripe = getStripeClient();
+    if (!stripe) {
+      return NextResponse.json(
+        { error: 'Stripe is not configured' },
+        { status: 500 }
       );
     }
 
