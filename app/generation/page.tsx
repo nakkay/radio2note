@@ -105,9 +105,7 @@ export default function GenerationPage() {
                 setProgress(80);
                 setStatus("記事を保存中...");
 
-                // 会話履歴と収録時間を取得
-                const conversationStr = localStorage.getItem("radio2note_conversation");
-                const conversationHistory = conversationStr ? JSON.parse(conversationStr) : null;
+                // 収録時間を取得（会話履歴は既に取得済み）
                 const elapsedTime = parseInt(localStorage.getItem("radio2note_elapsedTime") || "0", 10);
 
                 // Supabaseに記事を保存（失敗した場合はlocalStorageにフォールバック）
