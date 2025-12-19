@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
       mcMessageCount: mcMessages.length,
       recentTopics: userMessages.map(m => {
         // キーワード抽出（簡易版）
-        const words = m.content.split(/[。、！？\s]/).filter(w => w.length > 2);
+        const words = m.content.split(/[。、！？\s]/).filter((w: string) => w.length > 2);
         return words.slice(0, 3).join(" ");
       }).filter(Boolean),
       isLooping: userMessages.length >= 3 && 
