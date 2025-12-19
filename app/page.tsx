@@ -3,6 +3,8 @@
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 interface SavedArticle {
   id: string;
@@ -13,21 +15,69 @@ interface SavedArticle {
 }
 
 export default function Home() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const [recentArticles, setRecentArticles] = useState<SavedArticle[]>([]);
 
+  // 認証ガード: 未ログイン時はログイン画面にリダイレクト
   useEffect(() => {
-    // localStorageから記事一覧を取得
-    const savedArticles = localStorage.getItem("radio2note_articles");
-    if (savedArticles) {
-      try {
-        const articles: SavedArticle[] = JSON.parse(savedArticles);
-        // 最新3件を取得
-        setRecentArticles(articles.slice(0, 3));
-      } catch {
-        // パースエラーは無視
-      }
+    if (!loading && !user) {
+      router.push("/login");
     }
-  }, []);
+  }, [user, loading, router]);
+
+  useEffect(() => {
+    // ログインしていない場合は何もしない
+    if (!user) return;
+
+    const loadArticles = async () => {
+      try {
+        // Supabaseから記事一覧を取得
+        const url = user?.id 
+          ? `/api/articles?userId=${user.id}` 
+          : "/api/articles";
+        const response = await fetch(url);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.articles) {
+            // Supabaseのデータ形式をフロントエンドの形式に変換
+            const formattedArticles = data.articles.map((a: any) => ({
+              id: a.id,
+              title: a.title,
+              theme: a.theme || a.title,
+              createdAt: a.created_at,
+              wordCount: a.word_count || 0,
+            }));
+            // 最新3件を取得
+            setRecentArticles(formattedArticles.slice(0, 3));
+            return;
+          }
+        } else {
+          const errorData = await response.json();
+          if (errorData.useLocalStorage) {
+            console.warn("⚠️ Supabaseが利用できないため、localStorageから読み込みます");
+          }
+        }
+      } catch (error) {
+        console.warn("⚠️ Supabaseからの取得に失敗しました。localStorageから読み込みます:", error);
+      }
+
+      // Supabaseから取得できなかった場合はlocalStorageから読み込む
+      const savedArticles = localStorage.getItem("radio2note_articles");
+      if (savedArticles) {
+        try {
+          const articles: SavedArticle[] = JSON.parse(savedArticles);
+          // 最新3件を取得
+          setRecentArticles(articles.slice(0, 3));
+        } catch {
+          // パースエラーは無視
+        }
+      }
+    };
+
+    loadArticles();
+  }, [user]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -41,6 +91,15 @@ export default function Home() {
     if (diffDays < 7) return `${diffDays}日前`;
     return date.toLocaleDateString("ja-JP", { month: "short", day: "numeric" });
   };
+
+  // ローディング中または未ログイン時は何も表示しない（リダイレクト中）
+  if (loading || !user) {
+    return (
+      <div className="flex flex-col h-[100dvh] bg-background text-foreground font-sans items-center justify-center">
+        <div className="text-muted-foreground">読み込み中...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[100dvh] bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">

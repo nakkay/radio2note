@@ -114,26 +114,6 @@ export default function SettingsPage() {
                 <div className="mb-8">
                     <h2 className="text-sm font-bold text-muted-foreground mb-3 px-1">アプリ設定</h2>
                     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
-                        <div className="w-full flex items-center justify-between p-4 border-b border-border/50">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                                    <Icon icon="solar:moon-bold" className="text-lg" />
-                                </div>
-                                <span className="font-medium text-sm">ダークモード</span>
-                            </div>
-                            <div className="w-11 h-6 bg-primary rounded-full relative">
-                                <div className="absolute top-1 right-1 w-4 h-4 bg-primary-foreground rounded-full shadow-sm" />
-                            </div>
-                        </div>
-                        <button className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left border-b border-border/50">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                                    <Icon icon="solar:bell-bold" className="text-lg" />
-                                </div>
-                                <span className="font-medium text-sm">通知設定</span>
-                            </div>
-                            <Icon icon="solar:arrow-right-linear" className="text-muted-foreground text-xl" />
-                        </button>
                         <button className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
