@@ -18,7 +18,6 @@ export default function SettingsPage() {
     const [showDeleteAccount, setShowDeleteAccount] = useState(false);
     const [microphoneDevices, setMicrophoneDevices] = useState<MediaDeviceInfo[]>([]);
     const [selectedMicrophone, setSelectedMicrophone] = useState<string>('');
-    const [microphoneVolume, setMicrophoneVolume] = useState(100);
 
     // URLパラメータから成功/キャンセルメッセージを取得
     useEffect(() => {
@@ -46,6 +45,9 @@ export default function SettingsPage() {
     // マイク設定を開く
     const handleOpenMicrophoneSettings = async () => {
         try {
+            // マイクアクセス許可を取得（デバイス名を取得するために必要）
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+            
             // マイクデバイス一覧を取得
             const devices = await navigator.mediaDevices.enumerateDevices();
             const audioInputs = devices.filter(device => device.kind === 'audioinput');
@@ -53,9 +55,7 @@ export default function SettingsPage() {
             
             // 保存されている設定を読み込む
             const savedDeviceId = localStorage.getItem('radio2note_microphone_device_id');
-            const savedVolume = localStorage.getItem('radio2note_microphone_volume');
             setSelectedMicrophone(savedDeviceId || audioInputs[0]?.deviceId || '');
-            setMicrophoneVolume(savedVolume ? parseInt(savedVolume) : 100);
             
             setShowMicrophoneSettings(true);
         } catch (error) {
@@ -66,10 +66,13 @@ export default function SettingsPage() {
 
     // マイク設定を保存
     const handleSaveMicrophoneSettings = () => {
+        if (!selectedMicrophone) {
+            alert('マイクデバイスを選択してください。');
+            return;
+        }
         localStorage.setItem('radio2note_microphone_device_id', selectedMicrophone);
-        localStorage.setItem('radio2note_microphone_volume', microphoneVolume.toString());
         setShowMicrophoneSettings(false);
-        alert('マイク設定を保存しました。');
+        alert('マイク設定を保存しました。次回の収録から反映されます。');
     };
 
     // アカウント削除
@@ -455,11 +458,15 @@ export default function SettingsPage() {
                             </button>
                         </div>
 
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-sm font-medium text-foreground mb-2 block">
-                                    マイクデバイス
-                                </label>
+                        <div>
+                            <label className="text-sm font-medium text-foreground mb-2 block">
+                                マイクデバイス
+                            </label>
+                            {microphoneDevices.length === 0 ? (
+                                <p className="text-sm text-muted-foreground p-3">
+                                    マイクデバイスが見つかりません。ブラウザの設定でマイクのアクセス許可を確認してください。
+                                </p>
+                            ) : (
                                 <select
                                     value={selectedMicrophone}
                                     onChange={(e) => setSelectedMicrophone(e.target.value)}
@@ -471,21 +478,7 @@ export default function SettingsPage() {
                                         </option>
                                     ))}
                                 </select>
-                            </div>
-
-                            <div>
-                                <label className="text-sm font-medium text-foreground mb-2 block">
-                                    マイク音量: {microphoneVolume}%
-                                </label>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={microphoneVolume}
-                                    onChange={(e) => setMicrophoneVolume(parseInt(e.target.value))}
-                                    className="w-full"
-                                />
-                            </div>
+                            )}
                         </div>
 
                         <div className="flex gap-3 mt-6">
