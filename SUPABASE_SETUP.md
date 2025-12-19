@@ -50,3 +50,34 @@ https://vnbcrywtqgkgmhphpjjd.supabase.co
 #### 「リダイレクトURI不一致」
 - **原因**: Google Cloud ConsoleのリダイレクトURIがSupabaseのドメインと一致していない
 - **解決**: Google Cloud ConsoleでSupabaseのドメイン（`https://your-project.supabase.co/auth/v1/callback`）を追加
+
+### 5. OAuthログイン画面の文言を変更する
+
+「vnbcrywtqgkgmhphpjjd.supabase.co にログイン」という文言を変更するには、Google Cloud ConsoleのOAuth同意画面でアプリケーション名を設定します。
+
+#### 手順
+
+1. **Google Cloud Console**にアクセス
+   - https://console.cloud.google.com/
+
+2. **APIs & Services** → **OAuth consent screen** に移動
+
+3. **アプリケーション名**を設定
+   - 例: 「Radio2Note」や「あなたのアプリ名」
+   - これが「○○にログイン」の○○部分に表示されます
+
+4. **アプリケーションのロゴ**を設定（オプション）
+   - ユーザーに信頼感を与えるため、ロゴを設定することを推奨
+
+5. **サポートメール**を設定
+   - 必須項目です
+
+6. **保存**して、必要に応じて**Googleのブランド検証**を申請
+   - 検証が完了すると、より信頼性の高い表示になります
+   - 検証には数営業日かかる場合があります
+
+#### 注意事項
+
+- アプリケーション名を変更すると、GoogleのOAuth同意画面に新しい名前が表示されます
+- 「○○にログイン」の文言は、Google側で自動的に生成されるため、完全にカスタマイズすることはできません
+- より細かいカスタマイズが必要な場合は、SupabaseのCustom Domainを設定することを検討してください
