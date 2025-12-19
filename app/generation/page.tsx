@@ -4,6 +4,7 @@ import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getUserPlan, getPlanLimits } from "@/lib/plans";
 
 export default function GenerationPage() {
     const router = useRouter();
@@ -14,6 +15,24 @@ export default function GenerationPage() {
     useEffect(() => {
         const generateArticle = async () => {
             try {
+                // 記事作成数の制限チェック
+                if (user?.id) {
+                    const planType = await getUserPlan(user.id);
+                    const limits = getPlanLimits(planType);
+                    
+                    // 今週の記事作成数を取得
+                    const countResponse = await fetch(`/api/user/article-count?userId=${user.id}`);
+                    if (countResponse.ok) {
+                        const countData = await countResponse.json();
+                        const currentCount = countData.count || 0;
+                        
+                        if (currentCount >= limits.maxArticlesPerWeek) {
+                            alert(`今週の記事作成上限（${limits.maxArticlesPerWeek}記事）に達しています。\n有料プランにアップグレードすると、週10記事まで作成できます。`);
+                            router.push("/settings");
+                            return;
+                        }
+                    }
+                }
                 // ローカルストレージからデータを取得
                 const conversationStr = localStorage.getItem("radio2note_conversation");
                 const theme = localStorage.getItem("radio2note_theme") || "";
@@ -62,44 +81,59 @@ export default function GenerationPage() {
                 localStorage.setItem("radio2note_articleTone", tone);
                 localStorage.setItem("radio2note_articleWordCount", data.wordCount.toString());
 
-                setProgress(60);
-                setStatus("タイトル画像を生成中...");
-
-                // 記事の最初の段落をサマリーとして使用
-                const articleLines = data.article.split("\n").filter((line: string) => line.trim());
-                const articleSummary = articleLines.slice(0, 3).join(" ").substring(0, 200);
+                // プランを取得して画像生成の可否を判定
+                const planType = user?.id ? await getUserPlan(user.id) : 'free';
+                const limits = getPlanLimits(planType);
 
                 let imageBase64 = null;
                 let imageMimeType = "image/png";
 
-                // タイトル画像を生成
-                try {
-                    const imageResponse = await fetch("/api/image/generate", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            title: theme,
-                            articleSummary,
-                        }),
-                    });
+                // 有料プランの場合のみ画像生成
+                if (limits.imageGenerationEnabled) {
+                    setProgress(60);
+                    setStatus("タイトル画像を生成中...");
 
-                    if (imageResponse.ok) {
-                        const imageData = await imageResponse.json();
-                        if (imageData.success && imageData.imageBase64) {
-                            imageBase64 = imageData.imageBase64;
-                            imageMimeType = imageData.mimeType || "image/png";
-                            // 一時的にlocalStorageにも保存（フォールバック用）
-                            localStorage.setItem("radio2note_articleImage", imageBase64);
-                            localStorage.setItem("radio2note_articleImageMimeType", imageMimeType);
-                            console.log("🎨 タイトル画像を保存しました:", imageMimeType);
+                    // 記事の最初の段落をサマリーとして使用
+                    const articleLines = data.article.split("\n").filter((line: string) => line.trim());
+                    const articleSummary = articleLines.slice(0, 3).join(" ").substring(0, 200);
+
+                    // タイトル画像を生成
+                    try {
+                        const imageResponse = await fetch("/api/image/generate", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                title: theme,
+                                articleSummary,
+                                userId: user?.id || null,
+                            }),
+                        });
+
+                        if (imageResponse.ok) {
+                            const imageData = await imageResponse.json();
+                            if (imageData.success && imageData.imageBase64) {
+                                imageBase64 = imageData.imageBase64;
+                                imageMimeType = imageData.mimeType || "image/png";
+                                // 一時的にlocalStorageにも保存（フォールバック用）
+                                localStorage.setItem("radio2note_articleImage", imageBase64);
+                                localStorage.setItem("radio2note_articleImageMimeType", imageMimeType);
+                                console.log("🎨 タイトル画像を保存しました:", imageMimeType);
+                            }
+                        } else {
+                            const errorData = await imageResponse.json();
+                            if (errorData.error === 'Image generation not available for free plan') {
+                                console.log("ℹ️ フリープランでは画像生成は利用できません");
+                            } else {
+                                console.warn("画像生成に失敗しましたが、記事は正常に生成されました");
+                            }
                         }
-                    } else {
-                        console.warn("画像生成に失敗しましたが、記事は正常に生成されました");
+                    } catch (imageError) {
+                        console.warn("画像生成中にエラーが発生しましたが、記事は正常に生成されました:", imageError);
                     }
-                } catch (imageError) {
-                    console.warn("画像生成中にエラーが発生しましたが、記事は正常に生成されました:", imageError);
+                } else {
+                    console.log("ℹ️ フリープランでは画像生成は利用できません");
                 }
 
                 setProgress(80);

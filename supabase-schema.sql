@@ -37,6 +37,41 @@ CREATE TRIGGER update_articles_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+-- user_subscriptionsテーブルを作成（Stripeサブスクリプション管理）
+CREATE TABLE IF NOT EXISTS user_subscriptions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE NOT NULL,
+  stripe_customer_id TEXT UNIQUE,
+  stripe_subscription_id TEXT UNIQUE,
+  stripe_price_id TEXT, -- Stripeの価格ID
+  status TEXT NOT NULL DEFAULT 'active', -- 'active', 'canceled', 'past_due', 'incomplete'
+  plan_type TEXT NOT NULL DEFAULT 'free', -- 'free' or 'premium'
+  current_period_start TIMESTAMP WITH TIME ZONE,
+  current_period_end TIMESTAMP WITH TIME ZONE,
+  cancel_at_period_end BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- インデックスを作成
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_user_id ON user_subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_stripe_customer_id ON user_subscriptions(stripe_customer_id);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_stripe_subscription_id ON user_subscriptions(stripe_subscription_id);
+
+-- updated_atを自動更新するトリガー
+CREATE TRIGGER update_user_subscriptions_updated_at
+  BEFORE UPDATE ON user_subscriptions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- Row Level Security (RLS) を有効化
+ALTER TABLE user_subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- ユーザーは自分のサブスクリプション情報のみ読み取り可能
+CREATE POLICY "Users can view their own subscription" ON user_subscriptions
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
 -- Row Level Security (RLS) を有効化
 ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 

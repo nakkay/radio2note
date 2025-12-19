@@ -4,10 +4,16 @@ import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { getUserPlan, getPlanLimits, type PlanType } from "@/lib/plans";
 
 export default function SettingsPage() {
     const router = useRouter();
     const { user, loading, signInWithGoogle, signOut } = useAuth();
+    const [planType, setPlanType] = useState<PlanType>('free');
+    const [articleCount, setArticleCount] = useState(0);
+    const [isLoadingPlan, setIsLoadingPlan] = useState(true);
+    const [isUpgrading, setIsUpgrading] = useState(false);
 
     const handleSignOut = async () => {
         if (!confirm("ログアウトしますか？")) return;
@@ -34,6 +40,102 @@ export default function SettingsPage() {
     const getUserAvatar = () => {
         return user?.user_metadata?.avatar_url || null;
     };
+
+    // プラン情報を取得
+    useEffect(() => {
+        const loadPlanInfo = async () => {
+            if (!user?.id) {
+                setIsLoadingPlan(false);
+                return;
+            }
+
+            try {
+                const plan = await getUserPlan(user.id);
+                setPlanType(plan);
+
+                // 今週の記事作成数を取得
+                const countResponse = await fetch(`/api/user/article-count?userId=${user.id}`);
+                if (countResponse.ok) {
+                    const countData = await countResponse.json();
+                    setArticleCount(countData.count || 0);
+                }
+            } catch (error) {
+                console.error('Failed to load plan info:', error);
+            } finally {
+                setIsLoadingPlan(false);
+            }
+        };
+
+        loadPlanInfo();
+    }, [user]);
+
+    // プランアップグレード
+    const handleUpgrade = async () => {
+        if (!user?.id) return;
+
+        setIsUpgrading(true);
+        try {
+            const response = await fetch('/api/stripe/create-checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: user.id,
+                    userEmail: user.email,
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.url) {
+                    // Stripe Checkoutページにリダイレクト
+                    window.location.href = data.url;
+                }
+            } else {
+                const errorData = await response.json();
+                alert('アップグレードに失敗しました: ' + (errorData.error || '不明なエラー'));
+            }
+        } catch (error) {
+            console.error('Upgrade error:', error);
+            alert('アップグレードに失敗しました');
+        } finally {
+            setIsUpgrading(false);
+        }
+    };
+
+    // サブスクリプションキャンセル
+    const handleCancelSubscription = async () => {
+        if (!user?.id) return;
+        if (!confirm('サブスクリプションをキャンセルしますか？現在の期間終了まで有料プランが利用できます。')) return;
+
+        try {
+            const response = await fetch('/api/stripe/cancel-subscription', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: user.id,
+                }),
+            });
+
+            if (response.ok) {
+                alert('サブスクリプションをキャンセルしました。現在の期間終了まで有料プランが利用できます。');
+                // プラン情報を再取得
+                const plan = await getUserPlan(user.id);
+                setPlanType(plan);
+            } else {
+                const errorData = await response.json();
+                alert('キャンセルに失敗しました: ' + (errorData.error || '不明なエラー'));
+            }
+        } catch (error) {
+            console.error('Cancel subscription error:', error);
+            alert('キャンセルに失敗しました');
+        }
+    };
+
+    const limits = getPlanLimits(planType);
     return (
         <div className="flex flex-col h-full bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">
 
@@ -83,15 +185,61 @@ export default function SettingsPage() {
                                         <div className="text-xs text-muted-foreground">{user.email}</div>
                                     </div>
                                 </div>
-                                <button className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-chart-1/10 flex items-center justify-center text-chart-1">
-                                            <Icon icon="solar:crown-star-bold" className="text-lg" />
+                                
+                                {/* プラン情報 */}
+                                {!isLoadingPlan && (
+                                    <div className="p-4 border-b border-border/50">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-sm font-medium text-foreground">
+                                                現在のプラン
+                                            </span>
+                                            <span className={`text-sm font-bold px-3 py-1 rounded-full ${
+                                                planType === 'premium' 
+                                                    ? 'bg-chart-1/20 text-chart-1' 
+                                                    : 'bg-muted text-muted-foreground'
+                                            }`}>
+                                                {planType === 'premium' ? 'プレミアム' : 'フリー'}
+                                            </span>
                                         </div>
-                                        <span className="font-medium text-sm">プランのアップグレード</span>
+                                        <div className="text-xs text-muted-foreground space-y-1">
+                                            <div>今週の記事作成: {articleCount} / {limits.maxArticlesPerWeek}件</div>
+                                            <div>画像生成: {limits.imageGenerationEnabled ? '利用可能' : '利用不可'}</div>
+                                        </div>
                                     </div>
-                                    <Icon icon="solar:arrow-right-linear" className="text-muted-foreground text-xl" />
-                                </button>
+                                )}
+
+                                {/* プランアップグレード/キャンセル */}
+                                {planType === 'free' ? (
+                                    <button 
+                                        onClick={handleUpgrade}
+                                        disabled={isUpgrading}
+                                        className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left disabled:opacity-50"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-chart-1/10 flex items-center justify-center text-chart-1">
+                                                <Icon icon="solar:crown-star-bold" className="text-lg" />
+                                            </div>
+                                            <div>
+                                                <span className="font-medium text-sm block">プレミアムプランにアップグレード</span>
+                                                <span className="text-xs text-muted-foreground">月額980円</span>
+                                            </div>
+                                        </div>
+                                        <Icon icon="solar:arrow-right-linear" className="text-muted-foreground text-xl" />
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={handleCancelSubscription}
+                                        className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left text-destructive"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
+                                                <Icon icon="solar:close-circle-bold" className="text-lg" />
+                                            </div>
+                                            <span className="font-medium text-sm">サブスクリプションをキャンセル</span>
+                                        </div>
+                                        <Icon icon="solar:arrow-right-linear" className="text-muted-foreground text-xl" />
+                                    </button>
+                                )}
                             </>
                         ) : (
                             <div className="p-4 text-center">

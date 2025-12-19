@@ -6,12 +6,40 @@ const genai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY || "" });
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, articleSummary } = body;
+    const { title, articleSummary, userId } = body;
 
     if (!title) {
       return NextResponse.json(
         { error: "Title is required" },
         { status: 400 }
+      );
+    }
+
+    // プランチェック: フリープランでは画像生成不可
+    if (userId) {
+      try {
+        const planResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/user/plan?userId=${userId}`);
+        if (planResponse.ok) {
+          const planData = await planResponse.json();
+          if (planData.planType !== 'premium') {
+            return NextResponse.json(
+              { error: "Image generation not available for free plan", success: false },
+              { status: 403 }
+            );
+          }
+        }
+      } catch (error) {
+        // プラン取得に失敗した場合はフリープランとみなす
+        return NextResponse.json(
+          { error: "Image generation not available for free plan", success: false },
+          { status: 403 }
+        );
+      }
+    } else {
+      // ユーザーIDがない場合（未ログイン）は画像生成不可
+      return NextResponse.json(
+        { error: "Image generation requires authentication", success: false },
+        { status: 403 }
       );
     }
 

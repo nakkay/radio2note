@@ -50,6 +50,12 @@ OPENAI_API_KEY=your_openai_api_key_here
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
+# Stripe (有料プラン用)
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_PRICE_ID=your_stripe_price_id  # 月額980円の価格ID
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+
 # Next.js
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
@@ -72,7 +78,30 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 **注意**: Supabaseが設定されていない場合、アプリは自動的にlocalStorageにフォールバックします（開発環境では問題ありません）。
 
-### 4. 開発サーバーの起動
+### 4. Stripeのセットアップ（有料プラン用）
+
+有料プラン機能を使用する場合は、Stripeのセットアップが必要です。
+
+1. [Stripe](https://stripe.com)でアカウントを作成
+2. **価格を作成**:
+   - Stripe Dashboard → Products → Add product
+   - 名前: "Radio2Note Premium"
+   - 価格: 980円（月額）
+   - 価格IDをコピー
+3. **Webhookエンドポイントを設定**:
+   - Stripe Dashboard → Developers → Webhooks → Add endpoint
+   - URL: `https://your-domain.vercel.app/api/stripe/webhook`
+   - イベント: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+   - Webhookシークレットをコピー
+4. 環境変数に以下を設定:
+   - `STRIPE_SECRET_KEY`: Stripeのシークレットキー
+   - `STRIPE_PUBLISHABLE_KEY`: Stripeの公開可能キー（フロントエンドで使用する場合は追加）
+   - `STRIPE_PRICE_ID`: 作成した価格のID
+   - `STRIPE_WEBHOOK_SECRET`: Webhookのシークレット
+
+**注意**: Stripeが設定されていない場合、有料プラン機能は利用できません（フリープランのみ利用可能）。
+
+### 5. 開発サーバーの起動
 
 ```bash
 npm run dev
