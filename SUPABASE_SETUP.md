@@ -81,3 +81,4 @@ https://vnbcrywtqgkgmhphpjjd.supabase.co
 - アプリケーション名を変更すると、GoogleのOAuth同意画面に新しい名前が表示されます
 - 「○○にログイン」の文言は、Google側で自動的に生成されるため、完全にカスタマイズすることはできません
 - より細かいカスタマイズが必要な場合は、SupabaseのCustom Domainを設定することを検討してください
+

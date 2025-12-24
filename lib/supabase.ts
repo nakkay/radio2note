@@ -51,3 +51,4 @@ export const createSupabaseClient = () => {
   return clientSupabaseInstance;
 };
 
+

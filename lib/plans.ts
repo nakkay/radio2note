@@ -62,3 +62,4 @@ export function getWeekEnd(date: Date = new Date()): Date {
   weekEnd.setHours(23, 59, 59, 999);
   return weekEnd;
 }
+

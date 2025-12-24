@@ -151,3 +151,4 @@ SELECT
 FROM user_subscriptions us
 JOIN auth.users u ON us.user_id = u.id
 ORDER BY us.created_at DESC;
+

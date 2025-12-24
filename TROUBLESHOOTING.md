@@ -127,3 +127,4 @@ Vercel Dashboardで以下が設定されているか確認：
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`（推奨、RLSをバイパスするため）
+

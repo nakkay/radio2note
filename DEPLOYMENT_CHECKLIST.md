@@ -76,3 +76,4 @@ ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
 - [ ] 環境変数が正しく設定されている（シークレットキーが漏洩していない）
 - [ ] Supabase RLSが有効化されている
 - [ ] APIルートで適切なエラーハンドリングが行われている
+
